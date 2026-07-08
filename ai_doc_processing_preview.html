@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kodex AI Document Processing Prototype</title>
+  <style>
+    :root{
+      --bg:#f7f8fb;
+      --panel:#ffffff;
+      --ink:#15151a;
+      --muted:#68707d;
+      --border:#dfe3ea;
+      --border-dark:#cbd2dc;
+      --purple:#6d1ff2;
+      --purple-700:#4f11bd;
+      --purple-50:#f4ecff;
+      --purple-100:#eadbff;
+      --teal:#0cc9bb;
+      --teal-50:#e9fbf8;
+      --green:#16a46a;
+      --green-50:#eaf8f1;
+      --yellow:#b7791f;
+      --yellow-50:#fff8df;
+      --red:#dc2626;
+      --red-50:#fff0f0;
+      --nav:#101218;
+      --nav-2:#161922;
+      --shadow:0 12px 30px rgba(22,25,34,.08);
+      --radius:14px;
+      --font:-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+    .sidebar{background:linear-gradient(180deg,#0e1117,#161922);color:white;padding:26px 16px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:8px;font-size:22px;margin:0 6px 20px}
+    .logo-mark{width:28px;height:28px;border:2px solid #8f5cff;border-radius:7px;transform:rotate(45deg);position:relative}
+    .logo-mark:after{content:"";position:absolute;width:10px;height:10px;background:#0cc9bb;border-radius:50%;right:-7px;top:-7px}
+    .nav-group{display:flex;flex-direction:column;gap:8px}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;color:#e6e7eb;text-decoration:none;font-weight:600}
+    .nav-item.active{background:rgba(109,31,242,.25);color:#fff;box-shadow:inset 0 0 0 1px rgba(109,31,242,.25)}
+    .nav-icon{width:22px;height:22px;border:1.5px solid currentColor;border-radius:6px;display:inline-grid;place-items:center;font-size:14px}
+    .side-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding-top:18px}
+    .main{min-width:0;display:flex;flex-direction:column}
+    .topbar{height:84px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 34px;position:sticky;top:0;z-index:5}
+    .topbar h1{font-size:24px;margin:0;font-weight:760;letter-spacing:-.02em}
+    .top-actions{display:flex;align-items:center;gap:14px}
+    .pill-status{display:flex;align-items:center;gap:10px;border:1px solid #bfece4;background:var(--teal-50);color:#0a6f66;padding:10px 14px;border-radius:10px;font-weight:700}
+    .help-btn{background:white;border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-weight:700;color:#303645}
+    .close{border:0;background:transparent;font-size:24px;color:#5e6673}
+    .content{padding:32px 34px 48px;max-width:1540px;width:100%;margin:0 auto}
+    .stepper{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:0 0 28px}
+    .step{display:flex;align-items:center;gap:10px;min-width:0;color:#6b7280;font-weight:750}
+    .step:after{content:"";height:3px;background:#dfe3ea;flex:1;border-radius:10px}
+    .step:last-child:after{display:none}
+    .step .bubble{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e8ecf3;color:#455061;font-weight:800;flex:0 0 auto}
+    .step.done .bubble{background:#dff9f2;color:#078672}
+    .step.active{color:var(--purple)}
+    .step.active .bubble{background:linear-gradient(180deg,#7c2cff,#5814d6);color:white;box-shadow:0 8px 18px rgba(109,31,242,.28)}
+    .step.active:after,.step.done:after{background:var(--purple)}
+    .grid{display:grid;grid-template-columns: minmax(620px, 1fr) minmax(480px, 640px);gap:22px;align-items:start}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .section{padding:24px}
+    .screen-title{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+    .screen-title .num{width:40px;height:40px;border-radius:50%;background:#17181f;color:#fff;display:grid;place-items:center;font-weight:850;font-size:18px}
+    h2{font-size:28px;line-height:1.15;margin:0;font-weight:780;letter-spacing:-.03em}
+    .subcopy{margin:8px 0 0;color:var(--muted)}
+    .divider{border-top:1px solid var(--border);margin:20px -24px 0}
+    .uploader{border:2px dashed #b8c0ce;border-radius:14px;background:#fbfcff;display:grid;place-items:center;min-height:230px;margin-top:24px;text-align:center;padding:28px;transition:.2s}
+    .uploader.active{border-color:var(--purple);background:var(--purple-50)}
+    .upload-icon{width:54px;height:54px;border-radius:50%;background:#eef1f6;display:grid;place-items:center;margin:0 auto 14px;font-size:26px;color:#68707d}
+    .btn{border:1px solid var(--border);border-radius:10px;background:#fff;color:#252b36;padding:11px 16px;font-weight:800;letter-spacing:.02em;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+    .btn.primary{background:linear-gradient(180deg,#7c2cff,#5c10db);color:white;border-color:transparent;box-shadow:0 9px 18px rgba(109,31,242,.2)}
+    .btn.teal{background:#11cbbd;color:white;border:0}
+    .btn.ghost{background:#fff;color:var(--purple);border-color:#c9a8ff}
+    .btn.danger{color:var(--red);border-color:#f1b1b1;background:#fff}
+    .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+    .actions{display:flex;justify-content:space-between;gap:14px;margin-top:24px;border-top:1px solid var(--border);padding-top:18px}
+    .actions .right{display:flex;gap:12px;margin-left:auto}
+    .file-card{display:flex;align-items:center;gap:13px;border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-top:18px;background:#fff}
+    .file-thumb{width:38px;height:38px;border-radius:10px;background:#eef1f6;display:grid;place-items:center;color:#697180;font-weight:800}
+    .file-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .file-meta{color:var(--muted);font-size:12px}
+    .status-row{display:flex;align-items:center;gap:12px;margin-top:13px;color:#384152}
+    .status-dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#edf1f6;color:#94a0b1;font-size:12px;font-weight:900}
+    .status-row.done .status-dot{background:#dcf8ef;color:#07936e}
+    .status-row.active .status-dot{background:var(--purple-100);color:var(--purple);animation:pulse 1.2s infinite}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(109,31,242,.3)}50%{box-shadow:0 0 0 7px rgba(109,31,242,0)}}
+    .summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}
+    .metric{border:1px solid var(--border);border-radius:12px;padding:16px;background:#fff;min-height:92px}
+    .metric strong{display:block;font-size:26px;margin-bottom:2px;color:var(--ink)}
+    .metric span{color:var(--muted);font-size:13px}
+    .metric.green{background:var(--green-50);border-color:#cceee0}
+    .metric.yellow{background:var(--yellow-50);border-color:#f1dfaa}
+    .metric.purple{background:var(--purple-50);border-color:#dec7ff}
+    .metric.blue{background:#eff6ff;border-color:#cbe0ff}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 18px;margin-top:24px}
+    .field{border:1px solid var(--border-dark);border-radius:12px;padding:11px 13px;background:#fff;min-height:72px;position:relative}
+    .field label{display:block;font-size:11px;font-weight:850;color:#6a7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+    .field input,.field select,.field textarea{width:100%;border:0;outline:0;background:transparent;color:#15151a;font-size:15px;padding:0}
+    .field textarea{min-height:160px;resize:vertical}
+    .field .meta{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--muted)}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:850;white-space:nowrap}
+    .badge.green{background:#dff7ed;color:#087751}
+    .badge.teal{background:#dff8f5;color:#08766e}
+    .badge.yellow{background:#fff0bb;color:#8a5a0a}
+    .badge.red{background:#fee2e2;color:#991b1b}
+    .badge.purple{background:#eadbff;color:#5814d6}
+    .badge.gray{background:#edf1f6;color:#53606f}
+    .inline-link{border:0;background:transparent;color:var(--purple);font-weight:800;padding:0}
+    .review-layout{display:grid;grid-template-columns:minmax(580px, 1fr) minmax(480px, 640px);gap:22px;align-items:start}
+    .tabs{display:flex;gap:20px;border-bottom:1px solid var(--border);margin:20px -24px 0;padding:0 24px}
+    .tab{border:0;background:transparent;padding:14px 0;font-weight:850;color:#657083;position:relative}
+    .tab.active{color:var(--purple)}
+    .tab.active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--purple);border-radius:8px 8px 0 0}
+    .target-card{border:1px solid var(--border);border-radius:14px;background:#fff;margin-top:18px;overflow:hidden}
+    .target-head{display:flex;align-items:center;gap:12px;background:#fbf8ff;border-bottom:1px solid var(--border);padding:15px 16px}
+    .avatar{width:32px;height:32px;border-radius:50%;background:var(--purple);color:#fff;display:grid;place-items:center;font-weight:900}
+    .target-title{font-weight:850;font-size:16px}
+    .target-head .spacer{flex:1}
+    .selector{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:17px 16px;border-bottom:1px solid var(--border)}
+    .selector:last-child{border-bottom:0}
+    .selector.clickable{cursor:pointer}
+    .selector.clickable:hover{background:#fbfcff}
+    .selector.active{box-shadow:inset 4px 0 0 var(--purple);background:#fcf9ff}
+    .selector-label{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .selector-name{font-size:13px;font-weight:850;color:#4a5260}
+    .selector-value{font-size:16px;font-weight:720;letter-spacing:.01em}
+    .source-line{margin-top:8px;color:#697386;font-size:12px}
+    .selector-actions{display:flex;gap:10px;align-items:center}
+    .icon-btn{width:32px;height:32px;border:1px solid transparent;border-radius:9px;background:transparent;color:#545d6b;display:grid;place-items:center;font-weight:900}
+    .icon-btn:hover{background:#eef1f6;border-color:var(--border)}
+    .icon-btn.red{color:var(--red)}
+    .attest{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--border);background:#fafbfc;border-radius:12px;padding:16px;margin-top:18px;color:#424a56}
+    .attest input{width:20px;height:20px;accent-color:var(--purple)}
+    .document-panel{position:sticky;top:116px}
+    .doc-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}
+    .doc-head .doc-title{font-weight:850;flex:1;min-width:0}
+    .doc-tools{display:flex;align-items:center;gap:8px;color:#4c5564;border-bottom:1px solid var(--border);padding:11px 16px}
+    .doc-page{margin:20px auto 26px;width:82%;min-height:680px;background:white;border:1px solid #d1d5db;box-shadow:0 12px 28px rgba(15,23,42,.16);padding:58px 54px;color:#202127;font-family:Georgia, 'Times New Roman', serif;font-size:13px;line-height:1.55}
+    .doc-page h3{text-align:center;font-size:17px;line-height:1.3;margin:0 0 22px;text-transform:uppercase;letter-spacing:.02em}
+    .doc-page p{margin:0 0 14px}
+    mark{border-radius:3px;padding:1px 3px;transition:.2s}
+    mark.name{background:#ffe58f}
+    mark.phone{background:#bdf3cd}
+    mark.email{background:#dec7ff}
+    mark.case{background:#cfe8ff}
+    mark.due{background:#ffd6a5}
+    mark.active{outline:3px solid var(--purple);box-shadow:0 0 0 6px rgba(109,31,242,.15)}
+    .doc-legend{position:absolute;right:14px;top:118px;display:flex;flex-direction:column;gap:12px}
+    .legend-item{text-align:center;color:#4e5867;font-size:12px}
+    .legend-num{display:block;width:30px;height:25px;border-radius:8px;margin:0 auto 5px;display:grid;place-items:center;font-weight:900}
+    .legend-num.name{background:#ffe58f;color:#7c5800}
+    .legend-num.phone{background:#bdf3cd;color:#066641}
+    .legend-num.email{background:#dec7ff;color:#5716bf}
+    .confidence-guide{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:15px 18px;border-top:1px solid var(--border)}
+    .guide-item{font-size:12px;color:#667085}
+    .guide-item strong{display:block;color:#1f2630;margin-bottom:2px}
+    .warning{display:flex;gap:10px;align-items:flex-start;background:var(--yellow-50);border:1px solid #f1dfaa;color:#73510d;padding:13px 14px;border-radius:12px;margin-top:18px}
+    .warning.red{background:var(--red-50);border-color:#ffc9c9;color:#8a1b1b}
+    .review-table{width:100%;border-collapse:collapse;margin-top:22px}
+    .review-table th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6f7785;padding:12px 10px;border-bottom:1px solid var(--border)}
+    .review-table td{padding:13px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+    .empty{border:1px dashed var(--border-dark);background:#fafbfc;border-radius:12px;padding:18px;text-align:center;color:#697386;margin-top:16px}
+    .summary-list{display:grid;gap:22px;margin-top:24px}
+    .summary-block{border-bottom:1px solid var(--border);padding-bottom:18px}
+    .summary-block:last-child{border-bottom:0}
+    .summary-block h3{margin:0 0 10px;font-size:18px}
+    .kv{display:grid;grid-template-columns:180px 1fr;gap:6px 20px;color:#1d2430}
+    .kv .key{color:#667085;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:.08em}
+    .subtle-callout{background:#f8f5ff;border:1px solid #dfcdff;color:#421295;border-radius:14px;padding:16px;margin-top:20px}
+    .hidden{display:none !important}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(8,12,20,.48);display:grid;place-items:center;z-index:20;padding:20px}
+    .modal{width:min(560px,100%);background:white;border-radius:18px;border:1px solid var(--border);box-shadow:0 30px 80px rgba(0,0,0,.25);overflow:hidden}
+    .modal h3{margin:0;font-size:22px}
+    .modal-body{padding:22px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:12px;border-top:1px solid var(--border);padding:16px 22px;background:#fbfcff}
+    @media(max-width:1180px){.app{grid-template-columns:82px 1fr}.sidebar{padding:18px 12px}.brand span,.nav-label{display:none}.nav-item{justify-content:center}.review-layout,.grid{grid-template-columns:1fr}.document-panel{position:static}.step span{display:none}.step:after{display:block}.summary-cards{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:760px){.topbar{padding:0 18px}.top-actions{display:none}.content{padding:22px 16px}.form-grid{grid-template-columns:1fr}.summary-cards,.confidence-guide{grid-template-columns:1fr}.doc-page{width:94%;padding:34px 26px}.doc-legend{display:none}.app{grid-template-columns:1fr}.sidebar{display:none}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo-mark"></div><span>KODEX</span></div>
+      <nav class="nav-group">
+        <a class="nav-item active" href="#"><span class="nav-icon">＋</span><span class="nav-label">New Request</span></a>
+        <a class="nav-item" href="#"><span class="nav-icon">⌘</span><span class="nav-label">Requests</span></a>
+        <a class="nav-item" href="#"><span class="nav-icon">□</span><span class="nav-label">Cases</span></a>
+      </nav>
+      <div class="side-bottom nav-group">
+        <a class="nav-item" href="#"><span class="nav-icon">◉</span><span class="nav-label">Profile</span></a>
+        <a class="nav-item" href="#"><span class="nav-icon">?</span><span class="nav-label">Help / Info</span></a>
+        <a class="nav-item" href="#"><span class="nav-icon">↪</span><span class="nav-label">Sign Out</span></a>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1>New Records Request</h1>
+        <div class="top-actions">
+          <div class="pill-status" id="aiStatus">✦ AI Extraction Ready</div>
+          <button class="help-btn">Need Help?</button>
+          <button class="close" aria-label="Close">×</button>
+        </div>
+      </header>
+      <div class="content">
+        <div class="stepper" id="stepper"></div>
+
+        <section id="screen-upload" class="screen grid">
+          <div class="card section">
+            <div class="screen-title"><div class="num">1</div><h2>Upload Legal Process</h2></div>
+            <p class="subcopy">Start with the primary legal process document. Kodex will extract request details and target identifiers for your review.</p>
+            <div class="divider"></div>
+
+            <div class="uploader" id="dropzone">
+              <div>
+                <div class="upload-icon">⇧</div>
+                <strong>Drag and drop files here</strong>
+                <p class="subcopy">PDF or Word documents. Upload primary legal process first.</p>
+                <button class="btn primary" id="processBtn" style="margin-top:12px">Use sample document</button>
+              </div>
+            </div>
+            <div id="uploadResults" class="hidden">
+              <div class="file-card">
+                <div class="file-thumb">PDF</div>
+                <div style="min-width:0;flex:1"><div class="file-name">legal_process_trap_and_trace_1.pdf</div><div class="file-meta">4.24 KB · 12 pages · Primary legal process</div></div>
+                <span class="badge teal">Uploaded</span>
+              </div>
+              <div id="processingSteps" style="margin-top:18px">
+                <div class="status-row" data-step="0"><span class="status-dot">1</span><span>Extracting document text</span></div>
+                <div class="status-row" data-step="1"><span class="status-dot">2</span><span>Finding request details</span></div>
+                <div class="status-row" data-step="2"><span class="status-dot">3</span><span>Extracting targets and selectors</span></div>
+                <div class="status-row" data-step="3"><span class="status-dot">4</span><span>Validating identifiers against source text</span></div>
+              </div>
+              <div id="extractionComplete" class="hidden">
+                <div class="summary-cards">
+                  <div class="metric green"><strong>6</strong><span>Items extracted</span></div>
+                  <div class="metric yellow"><strong>1</strong><span>Needs review</span></div>
+                  <div class="metric purple"><strong>3</strong><span>Fields prefilled</span></div>
+                  <div class="metric blue"><strong>100%</strong><span>Linked to source</span></div>
+                </div>
+                <div class="subtle-callout"><strong>Ready for review.</strong> Kodex found a search warrant, case number, dates, one subject, and two selectors. Review each AI-filled value before submitting.</div>
+              </div>
+            </div>
+            <div class="actions"><button class="btn" disabled>Previous</button><button class="btn primary" id="uploadNext" disabled>Continue to Request Details →</button></div>
+          </div>
+          <aside class="card section">
+            <h3 style="margin:0 0 8px">Design intent</h3>
+            <p class="subcopy">The old upload screen treated documents as attachments. This version makes the document the source of truth and shows immediate value after upload.</p>
+            <div class="warning" style="margin-top:20px"><strong>✓</strong><div><strong>PRD alignment</strong><br/>Supports document-first submission, perceived-latency handling, and early traceability.</div></div>
+          </aside>
+        </section>
+
+        <section id="screen-details" class="screen grid hidden">
+          <div class="card section">
+            <div class="screen-title"><div class="num">2</div><h2>Review Request Details</h2></div>
+            <p class="subcopy">Fields were prefilled from the legal process. Confirm extracted values or make edits.</p>
+            <div class="divider"></div>
+            <div class="form-grid">
+              <div class="field"><label>Agency Case Number</label><input value="26-MJ-1024"><div class="meta"><span class="badge green">AI extracted</span><button class="inline-link" onclick="showSource('case')">View source</button></div></div>
+              <div class="field"><label>Case Nature</label><select><option>Credit Card Fraud or Theft</option><option>Other</option></select><div class="meta"><span class="badge gray">Manually selected</span></div></div>
+              <div class="field"><label>Legal Process</label><select><option>Search Warrant</option><option>Subpoena</option><option>Court Order</option></select><div class="meta"><span class="badge green">AI extracted</span><button class="inline-link" onclick="showSource('case')">View source</button></div></div>
+              <div class="field"><label>Legal Doc Signature Date</label><input value="Jul 6, 2026"><div class="meta"><span class="badge green">AI extracted</span><button class="inline-link" onclick="showSource('case')">View source</button></div></div>
+              <div class="field"><label>Records Start Date</label><input value="Account creation"><div class="meta"><span class="badge yellow">Default applied</span></div></div>
+              <div class="field"><label>Records End Date</label><input value="Jul 6, 2026"><div class="meta"><span class="badge green">AI extracted</span></div></div>
+              <div class="field"><label>Due At</label><input value="Jul 11, 2026"><div class="meta"><span class="badge yellow">Calculated</span><span>5 days from signature date</span></div></div>
+            </div>
+            <div class="actions"><button class="btn ghost" onclick="goTo(1)">← Previous</button><button class="btn primary" onclick="goTo(3)">Continue to Targets →</button></div>
+          </div>
+          <aside class="card section document-panel">
+            <div class="doc-head" style="padding:0 0 12px;border-bottom:1px solid var(--border)"><div class="doc-title">Evidence preview</div><span class="badge teal">Processed</span></div>
+            <div class="doc-page" style="width:100%;min-height:520px;margin:18px 0 0;padding:34px 36px;font-size:12px">
+              <h3>United States District Court<br/>Northern District of Illinois</h3>
+              <p>IN THE APPLICATION OF THE UNITED STATES OF AMERICA FOR AN ORDER AUTHORIZING THE USE OF A PEN REGISTER AND A TRAP AND TRACE DEVICE</p>
+              <p><mark class="case">Case No: 26-MJ-1024</mark></p>
+              <p>Signed and submitted on <mark class="case">July 6, 2026</mark> by the Office of the United States Attorney.</p>
+              <p>The Court has authority to enter this installation and use of a pen register or trap and trace device under the Electronic Communications Privacy Act.</p>
+            </div>
+          </aside>
+        </section>
+
+        <section id="screen-targets" class="screen review-layout hidden">
+          <div class="card section">
+            <div class="screen-title"><div class="num">3</div><h2>Review & Confirm Extracted Targets</h2></div>
+            <p class="subcopy">AI extracted 6 items from 1 document. Review each item, assign roles, and resolve anything marked needs review.</p>
+            <div class="summary-cards">
+              <div class="metric green"><strong>6</strong><span>Items extracted</span></div>
+              <div class="metric green"><strong>5</strong><span>High confidence</span></div>
+              <div class="metric yellow"><strong>1</strong><span>Needs review</span></div>
+              <div class="metric blue"><strong>✓</strong><span>Traceable to source</span></div>
+            </div>
+            <div class="tabs">
+              <button class="tab active">All items (6)</button>
+              <button class="tab">Needs review (1)</button>
+              <button class="tab">Added manually (0)</button>
+              <button class="btn ghost" style="margin-left:auto;margin-bottom:8px">＋ Add Target</button>
+            </div>
+
+            <div class="target-card">
+              <div class="target-head">
+                <div class="avatar">☻</div>
+                <div><div class="target-title">Primary Subject</div><div class="file-meta">1 target · 3 selectors</div></div>
+                <span class="badge green">High confidence</span>
+                <div class="spacer"></div>
+                <select style="border:1px solid var(--border);border-radius:9px;padding:8px 10px;background:#fff;font-weight:700"><option>Primary Subject</option><option>Associate</option><option>Victim</option><option>Witness</option></select>
+              </div>
+              <div class="selector clickable active" data-mark="name" onclick="selectEvidence('name', this)">
+                <div><div class="selector-label"><span class="selector-name">Full Name</span><span class="badge teal">Extracted</span></div><div class="selector-value">Daniel R. Mercer</div><div class="source-line">Found on page 1 · Confidence: High · Exact text match</div></div>
+                <div class="selector-actions"><button class="icon-btn">⧉</button><button class="icon-btn">✎</button><button class="icon-btn red">🗑</button></div>
+              </div>
+              <div class="selector clickable" data-mark="phone" onclick="selectEvidence('phone', this)">
+                <div><div class="selector-label"><span class="selector-name">Phone Number</span><span class="badge teal">Extracted</span></div><div class="selector-value">(773) 555-4921</div><div class="source-line">Found on page 2 · Confidence: High · Format validated</div></div>
+                <div class="selector-actions"><button class="icon-btn">⧉</button><button class="icon-btn">✎</button><button class="icon-btn red">🗑</button></div>
+              </div>
+              <div class="selector clickable" data-mark="email" onclick="selectEvidence('email', this)">
+                <div><div class="selector-label"><span class="selector-name">Email Address</span><span class="badge yellow">Needs review</span></div><div class="selector-value">daniel.mercer@gmail.com</div><div class="source-line">Found on page 3 · Confidence: Low · Similar text appears only once</div></div>
+                <div class="selector-actions"><button class="btn ghost" onclick="event.stopPropagation();openReviewModal()">Review</button><button class="icon-btn">⧉</button><button class="icon-btn">✎</button><button class="icon-btn red">🗑</button></div>
+              </div>
+            </div>
+            <div class="target-card">
+              <div class="target-head"><div class="avatar">⌂</div><div><div class="target-title">Associated Address</div><div class="file-meta">1 selector</div></div><span class="badge green">High confidence</span><div class="spacer"></div><button class="icon-btn">⌄</button></div>
+            </div>
+            <label class="attest"><input id="attest" type="checkbox" onchange="document.getElementById('targetsNext').disabled=!this.checked"><span>I have reviewed the extracted targets and identifiers. I understand AI-extracted data must be confirmed before submission.</span></label>
+            <div class="actions"><button class="btn ghost" onclick="goTo(2)">← Previous</button><button class="btn primary" id="targetsNext" onclick="goTo(4)" disabled>Continue →</button></div>
+          </div>
+          <aside class="card document-panel" style="overflow:hidden;position:sticky;top:116px">
+            <div class="doc-head"><div><div style="font-size:12px;font-weight:850;color:#667085;text-transform:uppercase;letter-spacing:.08em">Source Document</div><div class="doc-title">legal_process_trap_and_trace_1.pdf</div></div><span class="badge teal">Processed</span></div>
+            <div class="doc-tools"><span>🔍</span><span>−</span><span>＋</span><strong style="margin-left:10px">1 / 12</strong><span style="margin-left:auto">⛶</span><span>⤓</span></div>
+            <div style="position:relative;background:#eef1f6;padding:1px 0">
+              <div class="doc-legend"><div class="legend-item"><span class="legend-num name">2</span>Names</div><div class="legend-item"><span class="legend-num phone">1</span>Phones</div><div class="legend-item"><span class="legend-num email">1</span>Emails</div></div>
+              <div class="doc-page">
+                <h3>United States District Court<br/>Northern District of Illinois</h3>
+                <p>In the application of the United States of America for an order authorizing the use of a pen register and a trap and trace device.</p>
+                <p>Case No: <mark class="case">26-MJ-1024</mark></p>
+                <p>Based on information obtained by agents of the Federal Bureau of Investigation, I have reason to believe that the following individual is using a communication facility to commit or facilitate violations of federal law:</p>
+                <p>Name: <mark class="name active">Daniel R. Mercer</mark></p>
+                <p>Phone: <mark class="phone">(773) 555-4921</mark></p>
+                <p>Email: <mark class="email">daniel.mercer@gmail.com</mark></p>
+                <p>Address: 1234 W. Madison St., Chicago, IL 60607</p>
+                <p>The Court authorizes installation and use of the requested device for the period described in this order.</p>
+              </div>
+            </div>
+            <div class="confidence-guide"><div class="guide-item"><strong>High</strong>Exact or validated match</div><div class="guide-item"><strong>Medium</strong>Likely match</div><div class="guide-item"><strong>Low</strong>Needs review</div><div class="guide-item"><strong>N/A</strong>Not found</div></div>
+          </aside>
+        </section>
+
+        <section id="screen-ndo" class="screen grid hidden">
+          <div class="card section">
+            <div class="screen-title"><div class="num">4</div><h2>Non-Disclosure Order</h2></div>
+            <p class="subcopy">Kodex did not detect a non-disclosure order in the uploaded document. Confirm before continuing.</p>
+            <div class="divider"></div>
+            <div class="warning"><strong>!</strong><div><strong>No NDO detected.</strong><br/>The source document did not include clear NDO language. If a separate NDO exists, upload it before submitting.</div></div>
+            <div style="margin-top:24px;display:grid;gap:22px">
+              <div><strong>Do you have an NDO?</strong><br/><label style="margin-right:18px"><input type="radio" name="ndo"> Yes</label><label><input type="radio" name="ndo" checked> No</label></div>
+              <div><strong>Is the disclosure prohibited by a statute or any applicable law?</strong><br/><label style="margin-right:18px"><input type="radio" name="statute"> Yes</label><label><input type="radio" name="statute" checked> No</label></div>
+              <label class="attest" style="margin:0"><input type="checkbox" checked><span>I understand that the target user may be notified of this request.</span></label>
+            </div>
+            <div class="actions"><button class="btn ghost" onclick="goTo(3)">← Previous</button><button class="btn primary" onclick="goTo(5)">Continue →</button></div>
+          </div>
+          <aside class="card section"><h3 style="margin-top:0">Possible future AI assist</h3><p class="subcopy">This step could later classify NDO language from attached documents, but should still require explicit confirmation because notification policy has legal consequences.</p></aside>
+        </section>
+
+        <section id="screen-info" class="screen grid hidden">
+          <div class="card section">
+            <div class="screen-title"><div class="num">5</div><h2>Additional Information</h2></div>
+            <p class="subcopy">Optional context for the receiving organization.</p>
+            <div class="divider"></div>
+            <div class="field" style="margin-top:24px"><label>Additional Information</label><textarea>This is a criminal fraud investigation that involves the party outlined in the uploaded legal process.</textarea><div class="meta"><span class="badge gray">Manually entered</span></div></div>
+            <div class="actions"><button class="btn ghost" onclick="goTo(4)">← Previous</button><button class="btn primary" onclick="goTo(6)">Continue →</button></div>
+          </div>
+          <aside class="card section"><h3 style="margin-top:0">Design note</h3><p class="subcopy">This screen can remain mostly unchanged. The AI system should not invent narrative details. Keep this as user-authored context.</p></aside>
+        </section>
+
+        <section id="screen-summary" class="screen grid hidden">
+          <div class="card section">
+            <div class="screen-title"><div class="num">6</div><h2>Summary</h2></div>
+            <p class="subcopy">Final review before submission. AI provenance and manual changes are visible for auditability.</p>
+            <div class="divider"></div>
+            <div class="subtle-callout"><strong>Ready to submit.</strong> 6 items extracted · 5 high confidence · 1 reviewed · 0 unresolved warnings.</div>
+            <div class="summary-list">
+              <div class="summary-block"><h3>Request Details <span class="badge green">3 AI extracted</span></h3><div class="kv"><div class="key">Case number</div><div>26-MJ-1024</div><div class="key">Case nature</div><div>Credit Card Fraud or Theft</div><div class="key">Legal process</div><div>Search Warrant</div><div class="key">Due at</div><div>Jul 11, 2026 <span class="badge yellow">Calculated</span></div></div></div>
+              <div class="summary-block"><h3>Target Information <span class="badge green">Verified</span></h3><div class="kv"><div class="key">Primary Subject</div><div>Daniel R. Mercer</div><div class="key">Phone</div><div>(773) 555-4921</div><div class="key">Email</div><div>daniel.mercer@gmail.com <span class="badge yellow">Reviewed</span></div></div></div>
+              <div class="summary-block"><h3>Documents</h3><div class="file-card" style="margin-top:8px"><div class="file-thumb">PDF</div><div style="flex:1"><div class="file-name">legal_process_trap_and_trace_1.pdf</div><div class="file-meta">Processed · text extracted · identifiers linked to source</div></div><span class="badge teal">Traceable</span></div></div>
+            </div>
+            <div class="actions"><button class="btn ghost" onclick="goTo(5)">← Previous</button><button class="btn primary" onclick="goTo(7)">Submit Request</button></div>
+          </div>
+          <aside class="card section"><h3 style="margin-top:0">What changed from the old summary?</h3><p class="subcopy">Instead of only listing submitted values, this version summarizes AI provenance, unresolved warnings, and reviewed low-confidence items.</p></aside>
+        </section>
+
+        <section id="screen-submitted" class="screen hidden">
+          <div class="card section" style="max-width:760px;margin:70px auto;text-align:center">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(180deg,#7c2cff,#5c10db);display:grid;place-items:center;color:white;font-size:38px;margin:12px auto 20px">✓</div>
+            <h2>Request Submitted</h2>
+            <p class="subcopy" style="font-size:17px">Request <strong>KDP-11</strong> has been successfully submitted.</p>
+            <div class="summary-cards" style="margin-top:30px"><div class="metric green"><strong>6</strong><span>AI-extracted items</span></div><div class="metric purple"><strong>1</strong><span>Reviewed item</span></div><div class="metric blue"><strong>0</strong><span>Open warnings</span></div><div class="metric green"><strong>✓</strong><span>Audit trail saved</span></div></div>
+            <div style="display:flex;gap:12px;justify-content:center;margin-top:30px"><button class="btn ghost" onclick="goTo(1)">Back to start</button><button class="btn teal">View request</button></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="reviewModal">
+    <div class="modal">
+      <div class="modal-body">
+        <h3>Review low-confidence email</h3>
+        <p class="subcopy">The email appears once in the document. Confirm this selector is correct or edit it before continuing.</p>
+        <div class="field" style="margin-top:18px"><label>Email Address</label><input value="daniel.mercer@gmail.com"><div class="meta"><span class="badge yellow">Low confidence</span><span>Found on page 3</span></div></div>
+        <div class="warning" style="margin-top:16px"><strong>!</strong><div>Small OCR differences can cause incorrect identifiers. Compare this value against the highlighted source text.</div></div>
+      </div>
+      <div class="modal-actions"><button class="btn" onclick="closeReviewModal()">Cancel</button><button class="btn primary" onclick="closeReviewModal(true)">Confirm selector</button></div>
+    </div>
+  </div>
+
+  <script>
+    const steps = [
+      'Upload Documents','Request Details','Review Targets','NDO','Additional Info','Summary'
+    ];
+    const screens = ['upload','details','targets','ndo','info','summary','submitted'];
+    let currentStep = 1;
+    const stepper = document.getElementById('stepper');
+    function renderStepper(){
+      stepper.innerHTML = steps.map((label, i) => {
+        const n=i+1;
+        const cls = currentStep>n ? 'done' : currentStep===n ? 'active' : '';
+        const icon = currentStep>n ? '✓' : n;
+        return `<div class="step ${cls}"><div class="bubble">${icon}</div><span>${label}</span></div>`;
+      }).join('');
+      if(currentStep>6) stepper.style.visibility='hidden'; else stepper.style.visibility='visible';
+    }
+    function goTo(step){
+      currentStep = step;
+      screens.forEach((id,idx)=>{
+        const el = document.getElementById('screen-'+id);
+        if(el) el.classList.toggle('hidden', idx !== step-1);
+      });
+      renderStepper();
+      window.scrollTo({top:0,behavior:'smooth'});
+      const ai = document.getElementById('aiStatus');
+      if(step===1) ai.textContent='✦ AI Extraction Ready';
+      if(step>1 && step<7) ai.textContent='✓ AI Extraction Complete';
+      if(step===7) ai.textContent='✓ Submitted';
+    }
+    renderStepper();
+
+    document.getElementById('processBtn').addEventListener('click',()=>{
+      document.getElementById('dropzone').classList.add('active');
+      document.getElementById('uploadResults').classList.remove('hidden');
+      document.getElementById('processBtn').disabled = true;
+      const rows = [...document.querySelectorAll('#processingSteps .status-row')];
+      rows.forEach(r=>{r.classList.remove('done','active'); r.querySelector('.status-dot').textContent = Number(r.dataset.step)+1;});
+      let i=0;
+      const tick=()=>{
+        rows.forEach((r,idx)=>{
+          r.classList.toggle('done', idx < i);
+          r.classList.toggle('active', idx === i);
+          if(idx < i) r.querySelector('.status-dot').textContent='✓';
+        });
+        if(i<rows.length){i++; setTimeout(tick,650)}
+        else{
+          rows.forEach(r=>r.classList.remove('active'));
+          document.getElementById('extractionComplete').classList.remove('hidden');
+          document.getElementById('uploadNext').disabled=false;
+          document.getElementById('aiStatus').textContent='✓ AI Extraction Complete';
+        }
+      };
+      setTimeout(tick,250);
+    });
+    document.getElementById('uploadNext').addEventListener('click',()=>goTo(2));
+
+    function clearMarks(){document.querySelectorAll('mark').forEach(m=>m.classList.remove('active'));}
+    function selectEvidence(type, row){
+      document.querySelectorAll('.selector').forEach(s=>s.classList.remove('active'));
+      row.classList.add('active');
+      clearMarks();
+      document.querySelectorAll('mark.'+type).forEach(m=>m.classList.add('active'));
+    }
+    function showSource(type){
+      goTo(3);
+      setTimeout(()=>{
+        const row = document.querySelector(`.selector[data-mark="${type==='case'?'name':type}"]`) || document.querySelector('.selector');
+        if(row) selectEvidence(row.dataset.mark,row);
+      },200)
+    }
+    function openReviewModal(){document.getElementById('reviewModal').classList.remove('hidden')}
+    function closeReviewModal(confirmed){
+      document.getElementById('reviewModal').classList.add('hidden');
+      if(confirmed){
+        const emailRow = document.querySelector('.selector[data-mark="email"] .badge');
+        emailRow.className='badge green'; emailRow.textContent='Reviewed';
+      }
+    }
+    window.goTo=goTo; window.selectEvidence=selectEvidence; window.showSource=showSource; window.openReviewModal=openReviewModal; window.closeReviewModal=closeReviewModal;
+  </script>
+</body>
+</html>
