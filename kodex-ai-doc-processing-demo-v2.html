@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kodex AI Document Processing Prototype</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --text: #182033;
+      --muted: #687184;
+      --line: #e4e8ef;
+      --line-strong: #cbd3df;
+      --blue: #2d5bff;
+      --blue-soft: #eef2ff;
+      --green: #0b7a55;
+      --green-soft: #e9f8f1;
+      --amber: #a86600;
+      --amber-soft: #fff5df;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --purple: #6554c0;
+      --purple-soft: #f1efff;
+      --shadow: 0 12px 30px rgba(20, 31, 55, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 252px 1fr;
+    }
+
+    .sidebar {
+      background: #101827;
+      color: #e8edf6;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6d7cff, #7bd5ff);
+    }
+
+    .sidebar .nav-title {
+      font-size: 12px;
+      color: #91a0b8;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .side-item {
+      padding: 10px 12px;
+      color: #b8c2d4;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .side-item.active {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .main {
+      padding: 28px 34px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      gap: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .case-chip {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .step {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .step:hover { border-color: var(--line-strong); }
+    .step.active {
+      color: var(--text);
+      border-color: #9aabff;
+      background: #fbfcff;
+      box-shadow: 0 6px 16px rgba(45,91,255,0.08);
+    }
+
+    .step.complete .num {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .num {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #eef1f6;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 750;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .card-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .card-body { padding: 22px; }
+
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 650;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.12s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(20,31,55,0.08); }
+    .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+    .btn.small { padding: 7px 10px; font-size: 12px; border-radius: 8px; }
+    .btn.danger { color: var(--red); border-color: #ffd0cc; background: var(--red-soft); }
+    .btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .upload-box {
+      border: 1.5px dashed #b8c4d8;
+      background: #fbfcff;
+      border-radius: 18px;
+      padding: 34px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      min-height: 210px;
+    }
+
+    .upload-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+      margin: 0 auto 12px;
+      font-size: 22px;
+    }
+
+
+
+    .zero-hint {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .zero-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .zero-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 850;
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+
+    .upload-empty-title {
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      margin-bottom: 5px;
+    }
+
+    .upload-empty-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 420px;
+      margin: 0 auto 16px;
+    }
+
+    .upload-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) 360px;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .upload-column {
+      display: grid;
+      gap: 14px;
+    }
+
+    .found-panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(20,31,55,0.06);
+    }
+
+    .found-head {
+      padding: 17px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcff;
+    }
+
+    .found-title {
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      margin-bottom: 5px;
+    }
+
+    .found-sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .found-body {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .found-item {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .found-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .found-value-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .found-value {
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .found-footer {
+      border-top: 1px solid var(--line);
+      padding: 14px;
+      background: #fbfcff;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .processing-strip {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .process-step {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .processing-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .doc-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+    }
+
+    .doc-left { display: flex; gap: 12px; align-items: center; }
+    .file-icon {
+      width: 38px;
+      height: 46px;
+      border-radius: 8px;
+      background: #f1f3f8;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    .progress-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .progress-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 12px;
+      border-radius: 12px;
+      background: #f8f9fc;
+      border: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .status.verified { background: var(--green-soft); color: var(--green); }
+    .status.review { background: var(--amber-soft); color: var(--amber); }
+    .status.edited { background: var(--purple-soft); color: var(--purple); }
+    .status.added { background: #eef1f6; color: #505b70; }
+    .status.error { background: var(--red-soft); color: var(--red); }
+    .status.info { background: var(--blue-soft); color: var(--blue); }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
+    }
+
+    .field-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .field-card:hover { border-color: #aab7cc; }
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 7px;
+    }
+    .value {
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+    .source-line {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 300px minmax(420px, 1fr) 380px;
+      gap: 14px;
+      min-height: 670px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      min-height: 0;
+    }
+
+    .panel-head {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    .panel-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .review-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .filter {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 7px 9px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .filter.active {
+      border-color: #9aabff;
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .target-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .target-item {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px;
+      cursor: pointer;
+      transition: 0.12s ease;
+    }
+
+    .target-item:hover { border-color: #aab7cc; }
+    .target-item.active {
+      border-color: #8ca1ff;
+      background: #fbfcff;
+      box-shadow: 0 8px 18px rgba(45,91,255,0.08);
+    }
+
+    .target-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .target-name {
+      font-weight: 780;
+      letter-spacing: -0.02em;
+    }
+
+    .target-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .mini-metrics {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .mini-chip {
+      background: #f3f5f9;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 11px;
+      padding: 3px 7px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .target-detail-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .target-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: #eef1ff;
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+      font-weight: 850;
+    }
+
+    .role-select {
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .selector-section {
+      padding: 16px 18px 18px;
+    }
+
+    .section-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .selector-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .selector-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .selector-card.active {
+      border-color: #8297ff;
+      box-shadow: 0 8px 18px rgba(45,91,255,0.09);
+    }
+
+    .selector-main {
+      padding: 13px 14px;
+      display: grid;
+      grid-template-columns: 108px 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .selector-type {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-top: 2px;
+    }
+
+    .selector-value {
+      font-weight: 750;
+      letter-spacing: -0.01em;
+      word-break: break-word;
+    }
+
+    .selector-source {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .selector-actions {
+      padding: 10px 14px;
+      border-top: 1px solid var(--line);
+      background: #fbfcff;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .action-left {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .warning-text {
+      color: var(--amber);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .source-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 670px;
+    }
+
+    .source-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 12px 14px 0;
+    }
+
+    .source-tab {
+      border: 1px solid var(--line);
+      border-bottom: none;
+      background: #f8f9fc;
+      border-radius: 10px 10px 0 0;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .source-tab.active {
+      background: #fff;
+      color: var(--text);
+    }
+
+    .document-preview {
+      margin: 0 14px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 22px;
+      flex: 1;
+      overflow: auto;
+      box-shadow: inset 0 0 0 8px #fafbfe;
+    }
+
+    .doc-page-title {
+      font-weight: 800;
+      text-align: center;
+      font-size: 15px;
+      margin-bottom: 18px;
+    }
+
+    .doc-line {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: #2e384d;
+      margin-bottom: 12px;
+    }
+
+    mark {
+      background: #fff0a6;
+      padding: 2px 3px;
+      border-radius: 4px;
+    }
+
+    mark.active-mark {
+      background: #a4c6ff;
+      box-shadow: 0 0 0 2px rgba(45,91,255,0.18);
+    }
+
+    .source-details {
+      border-top: 1px solid var(--line);
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .source-detail-title {
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .source-detail-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .empty-source {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 30px;
+      font-size: 13px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .summary-row {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .attest {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfcff;
+      padding: 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      background: #101827;
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: none;
+      font-size: 13px;
+      z-index: 20;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(16,24,39,0.34);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      padding: 24px;
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.22);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .modal-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      gap: 7px;
+    }
+
+    .form-row label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-row input, .form-row select {
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 10px 11px;
+      width: 100%;
+      color: var(--text);
+    }
+
+    .modal-foot {
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+
+    @media (max-width: 1180px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .workspace { grid-template-columns: 260px 1fr; }
+      .source-panel { grid-column: 1 / -1; min-height: 420px; }
+    }
+
+    @media (max-width: 760px) {
+      .main { padding: 20px; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .upload-layout, .processing-grid, .details-grid, .summary-grid, .workspace { grid-template-columns: 1fr; }
+      .selector-main { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>Kodex</div>
+      </div>
+      <div>
+        <div class="nav-title">Portal</div>
+        <div class="side-item active">New Request</div>
+        <div class="side-item">Requests</div>
+        <div class="side-item">Agencies</div>
+        <div class="side-item">Settings</div>
+      </div>
+      <div style="margin-top:auto;font-size:12px;color:#91a0b8;line-height:1.5">
+        AI Document Processing<br/>
+        Prototype · Zero State + Target Review v4
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Submit legal request</h1>
+          <div class="subtitle">Review the details Kodex extracted from the uploaded legal process document.</div>
+        </div>
+        <div class="case-chip">Demo environment · Search_Warrant.pdf</div>
+      </div>
+
+      <div class="steps">
+        <div class="step active" data-step="0"><span class="num">1</span><span>Upload</span></div>
+        <div class="step" data-step="1"><span class="num">2</span><span>Details</span></div>
+        <div class="step" data-step="2"><span class="num">3</span><span>Targets</span></div>
+        <div class="step" data-step="3"><span class="num">4</span><span>Review</span></div>
+      </div>
+
+      <!-- SCREEN 1 -->
+      <section class="screen active" id="screen-upload">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Upload legal process document</div>
+              <div class="card-note">Kodex uses the uploaded document to prepare request details and target information for review.</div>
+            </div>
+            <span class="status info">AI assisted</span>
+          </div>
+          <div class="card-body">
+            <div class="upload-layout" id="uploadZeroState">
+              <div class="upload-column">
+                <div class="upload-box">
+                  <div>
+                    <div class="upload-icon">↥</div>
+                    <div class="upload-empty-title">Upload legal process documents</div>
+                    <div class="upload-empty-sub">Kodex will read the document and prepare request details and targets for review. PDF and Word documents are supported.</div>
+                    <button class="btn primary" onclick="simulateUpload()">Browse files</button>
+                    <button class="btn ghost small" onclick="simulateUpload()" style="margin-left:8px">Use demo document</button>
+                  </div>
+                </div>
+
+                <div class="zero-hint">
+                  <div class="zero-row">
+                    <span class="zero-dot">1</span>
+                    <span>Upload the primary legal process document first so Kodex can extract request details and target identifiers.</span>
+                  </div>
+                  <div class="zero-row">
+                    <span class="zero-dot">2</span>
+                    <span>Kodex will process the document and show what it found before you continue.</span>
+                  </div>
+                  <div class="zero-row">
+                    <span class="zero-dot">3</span>
+                    <span>You’ll review, edit, or add missing information before submission.</span>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="found-panel">
+                <div class="found-head">
+                  <div class="found-title">What happens next</div>
+                  <div class="found-sub">After upload, Kodex will prepare a review summary from the document.</div>
+                </div>
+                <div class="found-body">
+                  <div class="found-item">
+                    <div class="found-label">Document text</div>
+                    <div class="found-value-row">
+                      <div class="found-value">Extract text</div>
+                      <span class="status added">Pending</span>
+                    </div>
+                  </div>
+                  <div class="found-item">
+                    <div class="found-label">Request details</div>
+                    <div class="found-value-row">
+                      <div class="found-value">Find key fields</div>
+                      <span class="status added">Pending</span>
+                    </div>
+                  </div>
+                  <div class="found-item">
+                    <div class="found-label">Targets</div>
+                    <div class="found-value-row">
+                      <div class="found-value">Identify selectors</div>
+                      <span class="status added">Pending</span>
+                    </div>
+                  </div>
+                  <div class="found-item">
+                    <div class="found-label">Review</div>
+                    <div class="found-value-row">
+                      <div class="found-value">Flag uncertainty</div>
+                      <span class="status added">Pending</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="found-footer">
+                  Nothing has been processed yet. Upload a document to start the AI-assisted review flow.
+                </div>
+              </aside>
+            </div>
+
+            <div class="upload-layout hidden" id="uploadProcessedState">
+              <div class="upload-column">
+                <div class="upload-box">
+                  <div>
+                    <div class="upload-icon">✓</div>
+                    <div style="font-weight:800;margin-bottom:4px">Search_Warrant.pdf uploaded</div>
+                    <div class="muted" style="font-size:13px">PDF · 4 pages · Uploaded by Agent</div>
+                  </div>
+                </div>
+
+                <div class="doc-card">
+                  <div class="doc-left">
+                    <div class="file-icon">PDF</div>
+                    <div>
+                      <div style="font-weight:800">Search_Warrant.pdf</div>
+                      <div class="muted" style="font-size:12px">Legal process document · 4 pages</div>
+                    </div>
+                  </div>
+                  <span class="status verified">Processed</span>
+                </div>
+
+                <div class="processing-strip">
+                  <div class="process-step"><span>Text extracted</span><span class="status verified">Done</span></div>
+                  <div class="process-step"><span>Request details found</span><span class="status verified">4 fields</span></div>
+                  <div class="process-step"><span>Targets and selectors identified</span><span class="status verified">7 selectors</span></div>
+                  <div class="process-step"><span>Validation complete</span><span class="status review">2 need review</span></div>
+                </div>
+              </div>
+
+              <aside class="found-panel">
+                <div class="found-head">
+                  <div class="found-title">What Kodex found</div>
+                  <div class="found-sub">Kodex extracted request details and target information from the uploaded document. You’ll review everything before submission.</div>
+                </div>
+                <div class="found-body">
+                  <div class="found-item">
+                    <div class="found-label">Legal process</div>
+                    <div class="found-value-row">
+                      <div class="found-value">Search Warrant</div>
+                      <span class="status verified">Verified</span>
+                    </div>
+                  </div>
+                  <div class="found-item">
+                    <div class="found-label">Case number</div>
+                    <div class="found-value-row">
+                      <div class="found-value">24-19382</div>
+                      <span class="status verified">Verified</span>
+                    </div>
+                  </div>
+                  <div class="found-item">
+                    <div class="found-label">Targets</div>
+                    <div class="found-value-row">
+                      <div class="found-value">3 targets</div>
+                      <span class="status info">Found</span>
+                    </div>
+                  </div>
+                  <div class="found-item">
+                    <div class="found-label">Selectors</div>
+                    <div class="found-value-row">
+                      <div class="found-value">7 identifiers</div>
+                      <span class="status info">Found</span>
+                    </div>
+                  </div>
+                  <div class="found-item">
+                    <div class="found-label">Needs review</div>
+                    <div class="found-value-row">
+                      <div class="found-value">2 values</div>
+                      <span class="status review">Review</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="found-footer">
+                  Next, review the extracted details and confirm anything that needs human judgment.
+                </div>
+              </aside>
+            </div>
+
+            <div class="button-row">
+              <button class="btn ghost">Cancel</button>
+              <button class="btn primary" id="uploadContinueBtn" onclick="goToStep(1)" disabled>Review extracted details</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2 -->
+      <section class="screen" id="screen-details">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Review request details</div>
+              <div class="card-note">These fields were prefilled from the uploaded document. Select a field to inspect its source context.</div>
+            </div>
+            <span class="status verified">4 extracted</span>
+          </div>
+          <div class="card-body">
+            <div class="details-grid">
+              <div class="field-card" onclick="showToast('Source: Search_Warrant.pdf · Page 1')">
+                <div class="label">Legal process type</div>
+                <div class="value">Search Warrant</div>
+                <span class="status verified">Verified in document</span>
+                <div class="source-line">Search_Warrant.pdf · Page 1</div>
+              </div>
+
+              <div class="field-card" onclick="showToast('Source: Search_Warrant.pdf · Page 1')">
+                <div class="label">Agency case number</div>
+                <div class="value">24-19382</div>
+                <span class="status verified">Verified in document</span>
+                <div class="source-line">Search_Warrant.pdf · Page 1</div>
+              </div>
+
+              <div class="field-card" onclick="showToast('Calculated from signature date and company SLA')">
+                <div class="label">Due date</div>
+                <div class="value">July 11, 2026</div>
+                <span class="status review">Calculated · review</span>
+                <div class="source-line">Derived from signature date + request policy</div>
+              </div>
+
+              <div class="field-card" onclick="showToast('Source: Search_Warrant.pdf · Page 2')">
+                <div class="label">Requested records</div>
+                <div class="value">Subscriber information, login IPs</div>
+                <span class="status verified">Extracted</span>
+                <div class="source-line">Search_Warrant.pdf · Page 2</div>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button class="btn" onclick="goToStep(0)">Back</button>
+              <button class="btn primary" onclick="goToStep(2)">Review targets</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3 -->
+      <section class="screen" id="screen-targets">
+        <div class="workspace">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Targets</div>
+              <div class="panel-subtitle"><span id="targetSummary">3 targets · 7 selectors · 2 need review</span></div>
+            </div>
+            <div class="panel-body">
+              <div class="review-toolbar">
+                <button class="filter active" onclick="setFilter('all', this)">All</button>
+                <button class="filter" onclick="setFilter('review', this)">Needs review</button>
+                <button class="filter" onclick="setFilter('edited', this)">Edited</button>
+              </div>
+              <div class="target-list" id="targetList"></div>
+              <button class="btn" style="width:100%;margin-top:12px" onclick="openAddTarget()">+ Add target</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="target-detail-head">
+              <div class="target-title">
+                <div class="avatar" id="targetAvatar">DM</div>
+                <div>
+                  <div style="font-weight:850;font-size:18px;letter-spacing:-0.02em" id="targetName">Daniel Mercer</div>
+                  <div class="muted" style="font-size:12px" id="targetMeta">Extracted from Search_Warrant.pdf</div>
+                </div>
+              </div>
+              <select class="role-select" id="roleSelect" onchange="updateRole(this.value)">
+                <option>Primary Subject</option>
+                <option>Secondary Subject</option>
+                <option>Victim</option>
+                <option>Witness</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="selector-section">
+              <div class="section-row">
+                <div>
+                  <div class="section-title">Selectors and identifiers</div>
+                  <div class="muted" style="font-size:12px">Review each value before continuing.</div>
+                </div>
+                <button class="btn small" onclick="openAddSelector()">+ Add selector</button>
+              </div>
+              <div class="selector-list" id="selectorList"></div>
+
+              <div class="attest" id="warningGate">
+                <input type="checkbox" id="targetAttest" />
+                <label for="targetAttest">
+                  I reviewed the extracted targets and resolved the items that need review.
+                  <span class="muted">You can continue after all review items are accepted, edited, or removed.</span>
+                </label>
+              </div>
+
+              <div class="button-row">
+                <button class="btn" onclick="goToStep(1)">Back</button>
+                <button class="btn primary" id="continueFromTargets" onclick="goToStep(3)">Continue to final review</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel source-panel">
+            <div class="panel-head">
+              <div class="panel-title">Source</div>
+              <div class="panel-subtitle" id="sourceSub">Select a value to see where it came from.</div>
+            </div>
+            <div class="source-tabs">
+              <div class="source-tab active">Search_Warrant.pdf</div>
+              <div class="source-tab">Attachment B</div>
+            </div>
+            <div class="document-preview" id="docPreview"></div>
+            <div class="source-details">
+              <div class="source-detail-title" id="sourceTitle">No value selected</div>
+              <div class="source-detail-text" id="sourceText">Click an extracted selector to inspect the supporting source context.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4 -->
+      <section class="screen" id="screen-review">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Final review</div>
+              <div class="card-note">Confirm the request is ready to submit. The summary includes AI extraction and human review status.</div>
+            </div>
+            <span class="status verified" id="reviewReadyBadge">Ready</span>
+          </div>
+          <div class="card-body">
+            <div class="summary-grid">
+              <div>
+                <div class="label">AI review summary</div>
+                <div class="summary-list" id="summaryList"></div>
+              </div>
+              <div>
+                <div class="label">Request details</div>
+                <div class="summary-list">
+                  <div class="summary-row"><span>Legal process</span><strong>Search Warrant</strong></div>
+                  <div class="summary-row"><span>Case number</span><strong>24-19382</strong></div>
+                  <div class="summary-row"><span>Due date</span><strong>Jul 11, 2026</strong></div>
+                  <div class="summary-row"><span>Documents</span><strong>1 processed</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="attest">
+              <input type="checkbox" id="finalAttest" onchange="toggleSubmit()" />
+              <label for="finalAttest">I reviewed the extracted information and confirm it is complete and accurate to the best of my knowledge.</label>
+            </div>
+
+            <div class="button-row">
+              <button class="btn" onclick="goToStep(2)">Back</button>
+              <button class="btn primary" id="submitBtn" disabled onclick="showToast('Prototype: request submitted')">Submit request</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="font-weight:850" id="modalTitle">Edit selector</div>
+        <button class="btn ghost small" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot" id="modalFoot"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const initialTargets = [
+  {
+    id: 't1',
+    name: 'Daniel Mercer',
+    initials: 'DM',
+    role: 'Primary Subject',
+    source: 'Search_Warrant.pdf',
+    selectors: [
+      { id: 's1', type: 'Full name', value: 'Daniel Mercer', status: 'verified', source: 'Search_Warrant.pdf · Page 1', sourceKey: 'name', note: 'Found in caption and target section.' },
+      { id: 's2', type: 'Phone', value: '(773) 555-0182', status: 'verified', source: 'Search_Warrant.pdf · Page 2', sourceKey: 'phone', note: 'Exact match found in target identifiers.' },
+      { id: 's3', type: 'Email', value: 'd.mercer@email.com', status: 'review', source: 'Search_Warrant.pdf · Page 2', sourceKey: 'email', note: 'Found once. Review recommended before submission.' }
+    ]
+  },
+  {
+    id: 't2',
+    name: 'Maya Chen',
+    initials: 'MC',
+    role: 'Secondary Subject',
+    source: 'Search_Warrant.pdf',
+    selectors: [
+      { id: 's4', type: 'Full name', value: 'Maya Chen', status: 'verified', source: 'Search_Warrant.pdf · Page 3', sourceKey: 'maya', note: 'Found in associated account section.' },
+      { id: 's5', type: 'Username', value: 'mchen_204', status: 'review', source: 'Search_Warrant.pdf · Page 3', sourceKey: 'username', note: 'Potential account handle. Formatting may include underscore or hyphen.' }
+    ]
+  },
+  {
+    id: 't3',
+    name: 'Unknown subscriber',
+    initials: 'US',
+    role: 'Other',
+    source: 'Manual entry',
+    selectors: [
+      { id: 's6', type: 'IP address', value: '172.16.43.9', status: 'added', source: 'Added manually · Not found in document', sourceKey: 'ip', note: 'Added by Agent because it was provided separately.' },
+      { id: 's7', type: 'Email', value: 'daniel.mercer@email.com', status: 'edited', source: 'Edited after extraction · Original: d.mercer@email.com', sourceKey: 'edited', note: 'Agent corrected the extracted email value.' }
+    ]
+  }
+];
+
+let targets = JSON.parse(JSON.stringify(initialTargets));
+let currentStep = 0;
+let activeTargetId = 't1';
+let activeSelectorId = 's1';
+let currentFilter = 'all';
+let editContext = null;
+
+const sourceSnippets = {
+  name: {
+    sub: 'Search_Warrant.pdf · Page 1',
+    title: 'Full name source',
+    text: 'The value “Daniel Mercer” appears in the caption and target section.',
+    html: `
+      <div class="doc-page-title">SEARCH WARRANT</div>
+      <div class="doc-line">Case No. 24-19382</div>
+      <div class="doc-line">In the matter of subscriber records for <mark class="active-mark">Daniel Mercer</mark>.</div>
+      <div class="doc-line">The court authorizes disclosure of records associated with the identifiers listed in Attachment A.</div>
+      <div class="doc-line">This order is signed and effective July 6, 2026.</div>
+    `
+  },
+  phone: {
+    sub: 'Search_Warrant.pdf · Page 2',
+    title: 'Phone source',
+    text: 'Exact phone number match found in Attachment A.',
+    html: `
+      <div class="doc-page-title">ATTACHMENT A · TARGET IDENTIFIERS</div>
+      <div class="doc-line">Target name: <mark>Daniel Mercer</mark></div>
+      <div class="doc-line">Subscriber phone number: <mark class="active-mark">(773) 555-0182</mark></div>
+      <div class="doc-line">Email address: <mark>d.mercer@email.com</mark></div>
+      <div class="doc-line">Requested records include subscriber information, login IPs, and account activity.</div>
+    `
+  },
+  email: {
+    sub: 'Search_Warrant.pdf · Page 2',
+    title: 'Email needs review',
+    text: 'Found once in the document. The system recommends review because there is no second occurrence to validate against.',
+    html: `
+      <div class="doc-page-title">ATTACHMENT A · TARGET IDENTIFIERS</div>
+      <div class="doc-line">Target name: <mark>Daniel Mercer</mark></div>
+      <div class="doc-line">Subscriber phone number: <mark>(773) 555-0182</mark></div>
+      <div class="doc-line">Email address: <mark class="active-mark">d.mercer@email.com</mark></div>
+      <div class="doc-line">Note: records requested for the above identifiers from Jan 1, 2026 to present.</div>
+    `
+  },
+  maya: {
+    sub: 'Search_Warrant.pdf · Page 3',
+    title: 'Associated person source',
+    text: 'Maya Chen appears in the associated accounts section.',
+    html: `
+      <div class="doc-page-title">ASSOCIATED ACCOUNTS</div>
+      <div class="doc-line">The agency has identified <mark class="active-mark">Maya Chen</mark> as an associated subject.</div>
+      <div class="doc-line">The associated account may be connected to the primary subject through shared device activity.</div>
+    `
+  },
+  username: {
+    sub: 'Search_Warrant.pdf · Page 3',
+    title: 'Username needs review',
+    text: 'The username is legible, but the underscore may be confused with a hyphen in the scan.',
+    html: `
+      <div class="doc-page-title">ASSOCIATED ACCOUNTS</div>
+      <div class="doc-line">Associated subject: <mark>Maya Chen</mark></div>
+      <div class="doc-line">Potential account handle: <mark class="active-mark">mchen_204</mark></div>
+      <div class="doc-line">Reviewer should confirm character formatting before submission.</div>
+    `
+  },
+  ip: {
+    sub: 'Manual value',
+    title: 'Manually added selector',
+    text: 'This value was added by the agent and was not verified in the uploaded legal process document.',
+    html: `
+      <div class="empty-source">
+        <div>
+          <div style="font-weight:850;margin-bottom:6px">No source match</div>
+          <div>172.16.43.9 was added manually and was not found in Search_Warrant.pdf.</div>
+        </div>
+      </div>
+    `
+  },
+  edited: {
+    sub: 'Edited selector',
+    title: 'Edited after extraction',
+    text: 'The agent changed the extracted value. Original extracted value is preserved for auditability.',
+    html: `
+      <div class="doc-page-title">ATTACHMENT A · TARGET IDENTIFIERS</div>
+      <div class="doc-line">Original extracted email: <mark>d.mercer@email.com</mark></div>
+      <div class="doc-line">Agent edited value to: <mark class="active-mark">daniel.mercer@email.com</mark></div>
+      <div class="doc-line">This edited value is not an exact match to the document text.</div>
+    `
+  }
+};
+
+function goToStep(step) {
+  currentStep = step;
+  document.querySelectorAll('.screen').forEach((s, i) => s.classList.toggle('active', i === step));
+  document.querySelectorAll('.step').forEach((s, i) => {
+    s.classList.toggle('active', i === step);
+    s.classList.toggle('complete', i < step);
+    const num = s.querySelector('.num');
+    num.textContent = i < step ? '✓' : i + 1;
+  });
+  if (step === 2) renderTargets();
+  if (step === 3) renderSummary();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.querySelectorAll('.step').forEach(step => {
+  step.addEventListener('click', () => goToStep(Number(step.dataset.step)));
+});
+
+function getTarget() {
+  return targets.find(t => t.id === activeTargetId) || targets[0];
+}
+
+function getSelector() {
+  const target = getTarget();
+  return target.selectors.find(s => s.id === activeSelectorId) || target.selectors[0];
+}
+
+function statusLabel(status) {
+  if (status === 'verified') return '<span class="status verified">Verified</span>';
+  if (status === 'review') return '<span class="status review">Needs review</span>';
+  if (status === 'edited') return '<span class="status edited">Edited</span>';
+  if (status === 'added') return '<span class="status added">Added</span>';
+  return '<span class="status info">Extracted</span>';
+}
+
+function targetCounts(target) {
+  const review = target.selectors.filter(s => s.status === 'review').length;
+  const verified = target.selectors.filter(s => s.status === 'verified').length;
+  const edited = target.selectors.filter(s => s.status === 'edited').length;
+  const added = target.selectors.filter(s => s.status === 'added').length;
+  return {review, verified, edited, added};
+}
+
+function aggregateCounts() {
+  const selectors = targets.flatMap(t => t.selectors);
+  return {
+    targets: targets.length,
+    selectors: selectors.length,
+    review: selectors.filter(s => s.status === 'review').length,
+    verified: selectors.filter(s => s.status === 'verified').length,
+    edited: selectors.filter(s => s.status === 'edited').length,
+    added: selectors.filter(s => s.status === 'added').length
+  };
+}
+
+function renderTargets() {
+  const counts = aggregateCounts();
+  document.getElementById('targetSummary').textContent = `${counts.targets} targets · ${counts.selectors} selectors · ${counts.review} need review`;
+  const list = document.getElementById('targetList');
+  list.innerHTML = '';
+
+  let filtered = targets;
+  if (currentFilter === 'review') filtered = targets.filter(t => t.selectors.some(s => s.status === 'review'));
+  if (currentFilter === 'edited') filtered = targets.filter(t => t.selectors.some(s => s.status === 'edited' || s.status === 'added'));
+
+  filtered.forEach(target => {
+    const c = targetCounts(target);
+    const div = document.createElement('div');
+    div.className = `target-item ${target.id === activeTargetId ? 'active' : ''}`;
+    div.onclick = () => {
+      activeTargetId = target.id;
+      activeSelectorId = target.selectors[0]?.id;
+      renderTargets();
+    };
+    div.innerHTML = `
+      <div class="target-top">
+        <div>
+          <div class="target-name">${target.name}</div>
+          <div class="target-meta">${target.role}</div>
+        </div>
+        ${c.review ? '<span class="status review">' + c.review + ' review</span>' : '<span class="status verified">OK</span>'}
+      </div>
+      <div class="mini-metrics">
+        <span class="mini-chip">${target.selectors.length} selectors</span>
+        ${c.verified ? `<span class="mini-chip">${c.verified} verified</span>` : ''}
+        ${c.edited ? `<span class="mini-chip">${c.edited} edited</span>` : ''}
+        ${c.added ? `<span class="mini-chip">${c.added} added</span>` : ''}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  renderTargetDetail();
+}
+
+function renderTargetDetail() {
+  const target = getTarget();
+  if (!target) return;
+  document.getElementById('targetAvatar').textContent = target.initials;
+  document.getElementById('targetName').textContent = target.name;
+  document.getElementById('targetMeta').textContent = `${target.source}`;
+  document.getElementById('roleSelect').value = target.role;
+
+  const selectorList = document.getElementById('selectorList');
+  selectorList.innerHTML = '';
+  target.selectors.forEach(selector => {
+    const div = document.createElement('div');
+    div.className = `selector-card ${selector.id === activeSelectorId ? 'active' : ''}`;
+    div.onclick = (event) => {
+      if (event.target.closest('button')) return;
+      activeSelectorId = selector.id;
+      showSource(selector);
+      renderTargetDetail();
+    };
+
+    const actions = selector.status === 'review' ? `
+      <div class="action-left">
+        <button class="btn small primary" onclick="acceptSelector('${selector.id}')">Accept</button>
+        <button class="btn small" onclick="openEditSelector('${selector.id}')">Edit</button>
+        <button class="btn small danger" onclick="removeSelector('${selector.id}')">Remove</button>
+      </div>
+      <div class="warning-text">Review required</div>
+    ` : `
+      <div class="action-left">
+        <button class="btn small" onclick="openEditSelector('${selector.id}')">Edit</button>
+        <button class="btn small danger" onclick="removeSelector('${selector.id}')">Remove</button>
+      </div>
+      <button class="btn small" onclick="showSourceById('${selector.id}')">View source</button>
+    `;
+
+    div.innerHTML = `
+      <div class="selector-main">
+        <div class="selector-type">${selector.type}</div>
+        <div>
+          <div class="selector-value">${selector.value}</div>
+          <div class="selector-source">${selector.source}</div>
+        </div>
+        ${statusLabel(selector.status)}
+      </div>
+      <div class="selector-actions">${actions}</div>
+    `;
+    selectorList.appendChild(div);
+  });
+
+  const selected = getSelector();
+  if (selected) showSource(selected, false);
+  updateContinueState();
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter').forEach(f => f.classList.remove('active'));
+  btn.classList.add('active');
+  renderTargets();
+}
+
+function updateRole(role) {
+  const t = getTarget();
+  t.role = role;
+  renderTargets();
+  showToast('Target role updated');
+}
+
+function findSelectorById(selectorId) {
+  for (const target of targets) {
+    const selector = target.selectors.find(s => s.id === selectorId);
+    if (selector) return {target, selector};
+  }
+  return {};
+}
+
+function showSourceById(selectorId) {
+  const {selector, target} = findSelectorById(selectorId);
+  if (selector) {
+    activeTargetId = target.id;
+    activeSelectorId = selector.id;
+    showSource(selector);
+    renderTargets();
+  }
+}
+
+function showSource(selector, toast = true) {
+  const src = sourceSnippets[selector.sourceKey] || sourceSnippets.name;
+  document.getElementById('sourceSub').textContent = src.sub;
+  document.getElementById('sourceTitle').textContent = src.title;
+  document.getElementById('sourceText').textContent = src.text;
+  document.getElementById('docPreview').innerHTML = src.html;
+  if (toast) showToast(`Showing source for ${selector.type}`);
+}
+
+function acceptSelector(selectorId) {
+  const {selector} = findSelectorById(selectorId);
+  if (!selector) return;
+  selector.status = 'verified';
+  selector.source = selector.source.replace('Needs review · ', '');
+  renderTargets();
+  showToast('Marked as verified');
+}
+
+function removeSelector(selectorId) {
+  const {target} = findSelectorById(selectorId);
+  if (!target) return;
+  target.selectors = target.selectors.filter(s => s.id !== selectorId);
+  activeSelectorId = target.selectors[0]?.id;
+  renderTargets();
+  showToast('Selector removed');
+}
+
+function openEditSelector(selectorId) {
+  const {selector} = findSelectorById(selectorId);
+  if (!selector) return;
+  editContext = {type:'editSelector', selectorId};
+  openModal('Edit selector', `
+    <div class="form-row">
+      <label>Type</label>
+      <select id="editType">
+        ${['Full name','Email','Phone','Username','IP address','Physical address'].map(t => `<option ${t===selector.type?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Value</label>
+      <input id="editValue" value="${escapeHtml(selector.value)}" />
+    </div>
+    <div class="form-row">
+      <label>Review note</label>
+      <input id="editNote" value="${escapeHtml(selector.note || '')}" />
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn primary" onclick="saveEditSelector()">Save changes</button>
+  `);
+}
+
+function saveEditSelector() {
+  const {selector} = findSelectorById(editContext.selectorId);
+  selector.type = document.getElementById('editType').value;
+  const original = selector.value;
+  selector.value = document.getElementById('editValue').value;
+  selector.note = document.getElementById('editNote').value;
+  selector.status = 'edited';
+  selector.source = `Edited after extraction · Original: ${original}`;
+  selector.sourceKey = 'edited';
+  closeModal();
+  renderTargets();
+  showToast('Selector edited');
+}
+
+function openAddSelector() {
+  editContext = {type:'addSelector'};
+  openModal('Add selector', `
+    <div class="form-row">
+      <label>Type</label>
+      <select id="newSelectorType">
+        <option>Email</option>
+        <option>Phone</option>
+        <option>Username</option>
+        <option>IP address</option>
+        <option>Physical address</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Value</label>
+      <input id="newSelectorValue" placeholder="Enter selector value" />
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn primary" onclick="saveAddSelector()">Add selector</button>
+  `);
+}
+
+function saveAddSelector() {
+  const t = getTarget();
+  const val = document.getElementById('newSelectorValue').value.trim();
+  if (!val) return showToast('Enter a value first');
+  const newId = 's' + Math.random().toString(16).slice(2, 7);
+  t.selectors.push({
+    id: newId,
+    type: document.getElementById('newSelectorType').value,
+    value: val,
+    status: 'added',
+    source: 'Added manually · Not found in document',
+    sourceKey: 'ip',
+    note: 'Added manually by Agent.'
+  });
+  activeSelectorId = newId;
+  closeModal();
+  renderTargets();
+  showToast('Selector added');
+}
+
+function openAddTarget() {
+  editContext = {type:'addTarget'};
+  openModal('Add target', `
+    <div class="form-row">
+      <label>Name</label>
+      <input id="newTargetName" placeholder="Target name or label" />
+    </div>
+    <div class="form-row">
+      <label>Role</label>
+      <select id="newTargetRole">
+        <option>Primary Subject</option>
+        <option>Secondary Subject</option>
+        <option>Victim</option>
+        <option>Witness</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>First selector type</label>
+      <select id="newTargetSelectorType">
+        <option>Email</option>
+        <option>Phone</option>
+        <option>Username</option>
+        <option>IP address</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>First selector value</label>
+      <input id="newTargetSelectorValue" placeholder="Enter selector value" />
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn primary" onclick="saveAddTarget()">Add target</button>
+  `);
+}
+
+function saveAddTarget() {
+  const name = document.getElementById('newTargetName').value.trim();
+  const selectorValue = document.getElementById('newTargetSelectorValue').value.trim();
+  if (!name) return showToast('Enter a target name first');
+  const targetId = 't' + Math.random().toString(16).slice(2, 7);
+  const selectorId = 's' + Math.random().toString(16).slice(2, 7);
+  const initials = name.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase() || 'T';
+  const newTarget = {
+    id: targetId,
+    name,
+    initials,
+    role: document.getElementById('newTargetRole').value,
+    source: 'Added manually',
+    selectors: selectorValue ? [{
+      id: selectorId,
+      type: document.getElementById('newTargetSelectorType').value,
+      value: selectorValue,
+      status: 'added',
+      source: 'Added manually · Not found in document',
+      sourceKey: 'ip',
+      note: 'Added manually by Agent.'
+    }] : []
+  };
+  targets.push(newTarget);
+  activeTargetId = targetId;
+  activeSelectorId = selectorId;
+  closeModal();
+  renderTargets();
+  showToast('Target added');
+}
+
+function updateContinueState() {
+  const counts = aggregateCounts();
+  const btn = document.getElementById('continueFromTargets');
+  const attest = document.getElementById('targetAttest');
+  if (!btn || !attest) return;
+  if (counts.review > 0) {
+    btn.disabled = true;
+    attest.checked = false;
+  } else {
+    btn.disabled = !attest.checked;
+  }
+  attest.onchange = () => {
+    btn.disabled = counts.review > 0 || !attest.checked;
+  };
+}
+
+function renderSummary() {
+  const counts = aggregateCounts();
+  const list = document.getElementById('summaryList');
+  list.innerHTML = `
+    <div class="summary-row"><span>Targets</span><strong>${counts.targets}</strong></div>
+    <div class="summary-row"><span>Selectors</span><strong>${counts.selectors}</strong></div>
+    <div class="summary-row"><span>Verified in document</span><strong>${counts.verified}</strong></div>
+    <div class="summary-row"><span>Edited after extraction</span><strong>${counts.edited}</strong></div>
+    <div class="summary-row"><span>Added manually</span><strong>${counts.added}</strong></div>
+    <div class="summary-row"><span>Unresolved warnings</span><strong>${counts.review}</strong></div>
+  `;
+  const badge = document.getElementById('reviewReadyBadge');
+  badge.className = counts.review ? 'status review' : 'status verified';
+  badge.textContent = counts.review ? 'Needs review' : 'Ready';
+  toggleSubmit();
+}
+
+function toggleSubmit() {
+  const counts = aggregateCounts();
+  const checked = document.getElementById('finalAttest')?.checked;
+  document.getElementById('submitBtn').disabled = !checked || counts.review > 0;
+}
+
+function openModal(title, body, foot) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modalFoot').innerHTML = foot;
+  document.getElementById('modalBackdrop').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').style.display = 'none';
+}
+
+function showToast(message) {
+  const t = document.getElementById('toast');
+  t.textContent = message;
+  t.style.display = 'block';
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => t.style.display = 'none', 2200);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+
+function simulateUpload() {
+  document.getElementById('uploadZeroState').classList.add('hidden');
+  document.getElementById('uploadProcessedState').classList.remove('hidden');
+  document.getElementById('uploadContinueBtn').disabled = false;
+  showToast('Document processed. Review summary is ready.');
+}
+
+renderTargets();
+showSource(getSelector(), false);
+</script>
+</body>
+</html>
