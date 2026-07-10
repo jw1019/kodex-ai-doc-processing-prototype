@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kodex — Split-Screen Review v2</title>
+<style>
+  :root{
+    --nav:#12100f; --nav-2:#1b1917; --accent:#6d28d9; --accent-2:#7c3aed;
+    --teal:#7fddc3; --page:#f6f6f4; --card:#ffffff; --line:#e6e4df; --line-2:#d5d3cc;
+    --ink:#1a1a1a; --ink-2:#5f5e5a; --ink-3:#8a897f;
+    --ok-bg:#e1f5ee; --ok-fg:#0f6e56; --warn-bg:#faeeda; --warn-fg:#854f0b;
+    --bad-bg:#fcebeb; --bad-fg:#a32d2d; --acc-bg:#eeedfe; --acc-fg:#534ab7;
+    --gray-bg:#f1efe8; --gray-fg:#5f5e5a; --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--page)}
+  svg.lucide{width:18px;height:18px;stroke-width:2;vertical-align:middle;flex:none}
+  .app{display:flex;min-height:100vh}
+  .nav{width:210px;background:var(--nav);color:#cfcdc8;flex-shrink:0;display:flex;flex-direction:column;padding:18px 0}
+  .nav .brandrow{display:flex;align-items:center;justify-content:flex-end;padding:0 16px 22px}
+  .nav .collapse{width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;color:#0c4b3a;cursor:pointer}
+  .nav a{display:flex;align-items:center;gap:12px;padding:11px 20px;color:#cfcdc8;text-decoration:none;font-size:14px;cursor:pointer}
+  .nav a.active,.nav a:hover{background:var(--nav-2);color:#fff}
+  .nav a svg.lucide{width:17px;height:17px;opacity:.9}
+  .nav .sec{margin-top:6px}
+  .nav .spacer{flex:1}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{background:var(--nav);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:16px 26px}
+  .topbar .title{font-weight:800;font-size:19px;letter-spacing:.2px}
+  .persona{display:flex;gap:0;background:var(--nav-2);border-radius:9px;padding:3px}
+  .persona button{border:0;background:transparent;color:#bdbbb5;font-size:12.5px;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:600}
+  .persona button.on{background:var(--accent-2);color:#fff}
+  .content{padding:26px;flex:1}
+  .wrap{max-width:1120px;margin:0 auto}
+  h1.page{text-align:center;font-size:26px;margin:6px 0 18px}
+  .steps{display:flex;gap:10px;justify-content:center;max-width:760px;margin:0 auto 22px}
+  .steps .s{height:7px;flex:1;border-radius:6px;background:#e4e0f5}
+  .steps .s.on{background:var(--accent-2)}
+  .steps .s.done{background:#c9c2f0}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;max-width:820px;margin:0 auto;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .panel.wide{max-width:1120px}
+  .phead{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+  .phead .num{width:38px;height:38px;border-radius:50%;background:#131111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .phead h2{margin:0;font-size:22px;font-weight:700}
+  .muted{color:var(--ink-2)}
+  .small{font-size:12.5px}
+  .btnrow{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+  .btn{border:1px solid var(--line-2);background:#fff;color:var(--ink);padding:10px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.3px}
+  .btn:hover{background:#faf9f7}
+  .btn.primary{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
+  .btn.primary:disabled{background:#cfcadb;border-color:#cfcadb;cursor:not-allowed}
+  .btn.ghost{background:transparent}
+  .btn.tiny{padding:5px 11px;font-size:11.5px;border-radius:7px}
+  .drop{border:2px dashed var(--line-2);border-radius:12px;padding:34px;text-align:center;color:var(--ink-2)}
+  .drop .disc{width:48px;height:48px;border-radius:50%;background:#4b4a46;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+  .drop .disc svg.lucide{width:22px;height:22px;color:#fff}
+  .hint{font-size:11px;color:var(--ink-3);margin:5px 4px 0}
+  .filerow{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px}
+  .filerow .fi{width:34px;height:34px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field label{display:block;font-size:11px;color:var(--ink-2);margin:0 4px 5px}
+  .field input,.field select{width:100%;padding:12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;background:#fff}
+  .chip{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.2px}
+  .c-ext{background:#e9efe6;color:#48583f}
+  .c-mod{background:#e7ecf7;color:#37508a}
+  .c-add{background:var(--gray-bg);color:var(--gray-fg)}
+  .c-ok{background:var(--ok-bg);color:var(--ok-fg)}
+  .c-rev{background:var(--warn-bg);color:var(--warn-fg)}
+  .c-bad{background:var(--bad-bg);color:var(--bad-fg)}
+  .banner{border-radius:10px;padding:12px 15px;font-size:13px;margin-bottom:12px;display:flex;gap:9px;align-items:flex-start}
+  .banner svg.lucide{width:16px;height:16px;margin-top:1px;flex:none}
+  .banner.warn{background:#fdfbe9;color:#6b5d0b;border:1px solid #eee2a8}
+  .banner.bad{background:#fdeeee;color:#8f2a2a;border:1px solid #f0c9c9}
+  /* SPLIT */
+  .split{display:grid;grid-template-columns:1fr 1.08fr;gap:20px;align-items:start}
+  .doc{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;display:flex;flex-direction:column;position:sticky;top:16px}
+  .doc .dbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-2);background:#fafaf8}
+  .doc .dbar .fn{display:flex;align-items:center;gap:7px}
+  .doc .dbar .zoom{display:flex;gap:6px;align-items:center}
+  .doc .dbar .zoom span{cursor:pointer;display:inline-flex;padding:1px 5px;border:1px solid var(--line);border-radius:6px}
+  .doc .dbar svg.lucide{width:15px;height:15px}
+  .page{padding:22px;font-size:12.5px;line-height:2.05;max-height:calc(100vh - 190px);overflow:auto}
+  .page .ct{text-align:center;font-weight:700;letter-spacing:.4px;margin-bottom:4px}
+  .page .cs{text-align:center;color:var(--ink-2);margin-bottom:16px;font-size:11.5px}
+  mark{border-radius:4px;padding:1px 3px;cursor:pointer;transition:outline .12s,box-shadow .12s}
+  mark.ok{background:var(--ok-bg);color:var(--ok-fg)}
+  mark.rev{background:var(--warn-bg);color:var(--warn-fg)}
+  mark.mono{font-family:var(--mono);font-size:11px}
+  mark.sel{outline:2px solid var(--accent-2);box-shadow:0 0 0 3px rgba(124,58,237,.16)}
+  .foot{padding:9px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:7px;min-height:36px}
+  .foot svg.lucide{width:14px;height:14px}
+  .tpane{display:flex;flex-direction:column;gap:0}
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .metric{background:#faf9f7;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+  .metric b{display:block;font-size:20px;font-weight:800}
+  .metric span{font-size:10.5px;color:var(--ink-2)}
+  .tgroup{margin-bottom:2px}
+  .tgh{display:flex;align-items:center;gap:9px;padding:14px 2px 10px;border-bottom:2px solid var(--line-2);margin-top:10px}
+  .tgh .av{width:26px;height:26px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center}
+  .tgh .av svg.lucide{width:15px;height:15px;color:#fff}
+  .tgh .role{margin-left:auto}
+  .tgh select{font-size:11.5px;padding:5px 8px;border:1px solid var(--line-2);border-radius:7px;background:#fff}
+  .sel{padding:13px 4px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:0}
+  .sel:hover{background:#fbfaf9}
+  .sel.active{background:#f4f2fd;box-shadow:inset 3px 0 0 var(--accent-2)}
+  .sel .r1{display:flex;align-items:center;gap:7px;margin-bottom:6px;flex-wrap:wrap}
+  .sel .r1 .lbl{font-size:11px;color:var(--ink-2)}
+  .sel .val{font-size:13px}
+  .sel .val.mono{font-family:var(--mono);font-size:11.5px;word-break:break-all}
+  .sel .val.err{color:var(--bad-fg)}
+  .sel .acts{margin-left:auto;display:flex;gap:11px;color:var(--ink-3)}
+  .sel .acts .ai{cursor:pointer;display:inline-flex}
+  .sel .acts .ai svg.lucide{width:15px;height:15px}
+  .vsrc{font-size:11.5px;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-top:6px;width:fit-content}
+  .vsrc svg.lucide{width:14px;height:14px}
+  .sugg{font-size:11px;color:var(--warn-fg);margin-top:5px;display:flex;align-items:center;gap:8px}
+  .sugg .btn.tiny{border-color:var(--warn-fg);color:var(--warn-fg)}
+  .attest{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:12.5px;background:#fff}
+  .aactions{display:flex;gap:8px;margin-left:auto}
+  .verdict{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .v-acc{background:var(--ok-bg);color:var(--ok-fg)}
+  .v-flag{background:var(--bad-bg);color:var(--bad-fg)}
+  .center{text-align:center;padding:40px 0}
+  .center .big{width:76px;height:76px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;margin:18px auto}
+  .center .big svg.lucide{width:34px;height:34px;color:#fff}
+  .kv{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 20px}
+  .kv .k{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px}
+  .kv .v{font-size:13px;margin-top:2px}
+  .sumsec{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
+  .sumsec h3{font-size:16px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
+  .legend{display:flex;gap:8px;flex-wrap:wrap}
+  /* review-targets table treatment (agent, split left pane) */
+  .chip.ext{background:#e6f4ea;color:#137a3e}
+  .rt-found{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:12px}
+  .rt-fh{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:11px}
+  .rt-fh svg.lucide{width:16px;height:16px}
+  .rt-mrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .rt-mbox{background:#f6f5f2;border:1px solid var(--line);border-radius:10px;padding:9px 6px;text-align:center}
+  .rt-mbox b{display:block;font-size:18px;font-weight:800}
+  .rt-mbox span{font-size:10px;color:var(--ink-2)}
+  .rt-mbox.rev{background:#fbf4df;border-color:#efe1b2}.rt-mbox.rev b{color:var(--warn-fg)}
+  .rt-mbox.edit{background:#fcecec;border-color:#f2cccc}.rt-mbox.edit b{color:var(--bad-fg)}
+  .rt-docs{font-size:10px;color:var(--ink-3);letter-spacing:.5px;margin-bottom:5px}
+  .rt-docrow{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  .rt-proc{background:#e6f4ea;color:#137a3e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .rt-instr{font-size:11.5px;color:var(--ink-3);margin-bottom:11px}
+  .rt-add{width:100%;border:1.5px dashed #c9c2f0;background:#faf9ff;color:var(--accent);border-radius:12px;padding:11px;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .rt-add svg.lucide{width:16px;height:16px}
+  .rt-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+  .rt-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f4f2fb}
+  .rt-head .av{width:24px;height:24px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+  .rt-head .av svg.lucide{width:14px;height:14px;color:#fff}
+  .rt-head .tname{font-weight:700;font-size:14px}
+  .rt-head .cnt{font-size:11.5px;color:var(--ink-2)}
+  .rt-head .sp{flex:1}
+  .rt-head select{font-size:11px;padding:5px 7px;border:1px solid var(--line-2);border-radius:7px;background:#fff}
+  .rt-head .hi{color:var(--ink-3);cursor:pointer;display:inline-flex}
+  .rt-head .hi svg.lucide{width:15px;height:15px}
+  .rt-row{display:flex;flex-direction:column;gap:5px;padding:11px 13px;border-top:1px solid var(--line);cursor:pointer}
+  .rt-row:hover{background:#fbfaf9}
+  .rt-row.active{background:#f4f2fd}
+  .rt-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .rt-lbl{font-size:11px;color:var(--ink-2);font-weight:700}
+  .rt-row .acts{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--ink-3)}
+  .rt-row .acts .ai{cursor:pointer;display:inline-flex}
+  .rt-row .acts .ai svg.lucide{width:15px;height:15px}
+  .rt-row .val{font-size:13px}
+  .rt-row .val.mono{font-family:var(--mono);font-size:11.5px;word-break:break-all}
+  .rt-row .val.err{color:var(--bad-fg)}
+  .rt-cf{border:1px solid var(--accent-2);color:var(--accent);background:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:7px;cursor:pointer}
+  .rt-err{font-size:11px;color:var(--bad-fg)}
+  /* edit modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(14,13,13,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal{background:#fff;border-radius:16px;padding:24px 26px;width:470px;max-width:94vw;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .modal .mh{display:flex;justify-content:space-between;align-items:flex-start}
+  .modal .mh h3{margin:0;font-size:19px;font-weight:700}
+  .modal .mh .msub{font-size:12px;color:var(--ink-3);margin-top:3px}
+  .modal .mx{cursor:pointer;color:var(--ink-3);display:inline-flex}
+  .modal hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  .mfield{margin-bottom:14px}
+  .mfield label{display:block;font-size:11px;color:var(--ink-2);font-weight:700;margin-bottom:6px}
+  .mfield input,.mfield select{width:100%;padding:11px 12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;font-family:inherit}
+  .mfield input{font-family:var(--mono)}
+  .mfield input:focus,.mfield select:focus{outline:none;border-color:var(--accent-2)}
+  .mhint{font-size:11.5px;margin-top:6px}
+  .mhint.ok{color:var(--ok-fg)}
+  .mhint.err{color:var(--bad-fg)}
+  .minfo{display:flex;gap:9px;align-items:center;background:#f8f7f4;border-radius:10px;padding:10px 12px;font-size:11.5px;color:var(--ink-2)}
+  .minfo svg.lucide{flex:none;color:var(--ink-3);width:15px;height:15px}
+  .mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .hidden{display:none!important}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#131111;color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <div class="brandrow"><div class="collapse"><i data-lucide="chevrons-left"></i></div></div>
+    <a><i data-lucide="user"></i> Profile</a>
+    <a><i data-lucide="bell"></i> Notifications</a>
+    <div class="sec">
+      <a class="active" id="nav-new"><i data-lucide="file-plus"></i> New Request</a>
+      <a id="nav-req"><i data-lucide="inbox"></i> Requests</a>
+      <a><i data-lucide="folder"></i> Cases</a>
+    </div>
+    <div class="spacer"></div>
+    <a><i data-lucide="circle-help"></i> Help / Info</a>
+    <a><i data-lucide="log-out"></i> Sign Out</a>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="small" style="color:#a9a7a1">k3p Logo</div>
+        <div class="persona" title="Prototype view — not part of the shipped screen">
+          <button id="p-agent" class="on" onclick="setPersona('agent')">Agent · submit</button>
+          <button id="p-analyst" onclick="setPersona('analyst')">Analyst · review</button>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="title">Government Request Portal</div>
+        <div class="small" style="color:#a9a7a1">powered by ⋈ KODEX</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- AGENT WIZARD -->
+      <div id="agentView" class="wrap">
+        <h1 class="page">New Records Request</h1>
+        <div class="steps" id="stepper"></div>
+
+        <section class="panel step" data-step="1">
+          <div class="phead"><div class="num">1</div><h2>Upload your legal process document</h2></div>
+          <p class="muted small" style="margin-top:-8px">Upload the subpoena, court order, or warrant that contains the target information first. You can add other supporting documents too.</p>
+          <div class="drop"><div class="disc"><i data-lucide="file-text"></i></div><div style="font-weight:600;color:var(--ink)">Drag and drop files here</div><div style="margin:8px 0">OR</div><button class="btn primary" onclick="addFile()">BROWSE</button></div>
+          <div class="hint">Accepted: PDF and Word (.docx) only · Max 5 files · Uploaded documents are processed to auto-extract targets.</div>
+          <div id="fileList"></div>
+          <div class="btnrow"><button class="btn ghost" disabled>PREVIOUS</button><button class="btn primary" onclick="go(2)">NEXT</button></div>
+        </section>
+
+        <section class="panel step hidden" data-step="2">
+          <div class="phead"><div class="num">2</div><h2>Request Details</h2></div>
+          <div class="small muted" style="letter-spacing:.5px;margin-bottom:14px">LEGAL</div>
+          <div class="grid2">
+            <div class="field"><label>Agency Case Number</label><input value="323123"></div>
+            <div class="field"><label>Case Nature</label><select><option>Credit Card Fraud or Theft</option><option>Money Laundering</option></select></div>
+            <div class="field"><label>Legal Process</label><select><option>Search Warrant</option><option>Subpoena</option><option>Court Order</option></select></div>
+            <div class="field"><label>Legal Doc Signature Date</label><input value="Jul 6, 2026"></div>
+            <div class="field"><label>Records Start Date</label><input value="Jul 1, 2026"><div class="hint">Optional — defaults to the user's account creation date.</div></div>
+            <div class="field"><label>Records End Date</label><input value="Jul 6, 2026"></div>
+            <div class="field"><label>Due At</label><input value="Jul 11, 2026"></div>
+          </div>
+          <div class="btnrow"><button class="btn" onclick="go(1)">CANCEL</button><button class="btn primary" onclick="go(3)">NEXT</button></div>
+        </section>
+
+        <section class="panel wide step hidden" data-step="3">
+          <div class="phead"><div class="num">3</div><h2>Review &amp; Confirm Extracted Targets</h2></div>
+          <p class="muted small" style="margin-top:-8px">Select any identifier on the left to see exactly where it appears in the source document. Edit inline, assign a role, then confirm.</p>
+          <div id="agentBanners"></div>
+          <div class="split">
+            <div class="tpane" id="tpaneAgent"></div>
+            <div class="doc">
+              <div class="dbar">
+                <span class="fn"><i data-lucide="file-text"></i> tron_20250902_civil_complaint.pdf</span>
+                <span class="zoom"><span onclick="pageMsg('page 3 / 27')"><i data-lucide="chevron-left"></i></span> page 4 / 27 <span onclick="pageMsg('page 5 / 27')"><i data-lucide="chevron-right"></i></span></span>
+              </div>
+              <div class="page" id="docPage">
+                <div class="ct">UNITED STATES DISTRICT COURT</div>
+                <div class="cs">VERIFIED COMPLAINT FOR FORFEITURE IN REM · Case 25-cv-2967</div>
+                <p>The defendant received and laundered proceeds through a wallet at
+                  <mark class="ok mono" data-h="s-wallet1">TC66d59uus8AWhYDvAgWM55T8NRa7KNWAN</mark>,
+                  operated by an individual using the email
+                  <mark class="ok" data-h="s-email">lingxingyu999@gmail.com</mark>,
+                  believed to be located in <mark class="ok" data-h="s-geo">Cambodia</mark> and
+                  residing in <mark class="ok" data-h="s-res1">Texas</mark>.</p>
+                <p>Blockchain analysis traced transfers totaling approximately
+                  <mark class="rev" data-h="s-amt">0.00366039 BTC</mark>
+                  that settled on <mark class="rev" data-h="s-date">21/08/2024</mark>, recorded under transaction hash
+                  <mark class="ok mono" data-h="s-hash">6e8bf3694440b23e9fc95e2fc7cd8f1b869af323180db08c5edbae69819e1216</mark>.</p>
+                <p>A second subject residing in
+                  <mark class="ok" data-h="s-res2">West Palm Beach, Florida</mark>
+                  controlled the receiving wallet
+                  <mark class="ok mono" data-h="s-wallet2">bc1qvulygn35l3c7uspcj9lvacrzhk6gmccgppar3x</mark>.</p>
+                <p style="color:var(--ink-3);font-size:11px;margin-top:18px">Footnote 1: USDT is a type of virtual currency called a "stablecoin" whose price is pegged to a commodity such as the U.S. dollar…</p>
+              </div>
+              <div class="foot" id="docFoot"><span>Select an identifier to locate it in the document.</span></div>
+            </div>
+          </div>
+          <div class="btnrow"><button class="btn" onclick="go(2)">PREVIOUS</button><button class="btn primary" id="nextTargets" disabled onclick="go(4)">NEXT</button></div>
+        </section>
+
+        <section class="panel step hidden" data-step="4">
+          <div class="phead"><div class="num">4</div><h2>Non-Disclosure Order</h2></div>
+          <p style="font-size:14px">Do you have an NDO?</p>
+          <label style="margin-right:20px"><input type="radio" name="ndo"> Yes</label><label><input type="radio" name="ndo" checked> No</label>
+          <p style="font-size:14px;margin-top:20px">Is the disclosure prohibited by a statute or any applicable law?</p>
+          <label style="margin-right:20px"><input type="radio" name="stat"> Yes</label><label><input type="radio" name="stat" checked> No</label>
+          <label style="display:block;margin-top:22px"><input type="checkbox" checked> I understand that the target user may be notified of this request.</label>
+          <div class="btnrow"><button class="btn" onclick="go(3)">PREVIOUS</button><button class="btn primary" onclick="go(5)">NEXT</button></div>
+        </section>
+
+        <section class="panel step hidden" data-step="5">
+          <div class="phead"><div class="num">5</div><h2>Additional Information</h2></div>
+          <div class="field"><label>Additional Information</label><textarea style="width:100%;min-height:150px;padding:12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px">This is a more complex fraud request that includes a number of transactions and wallet addresses across two suspects.</textarea></div>
+          <div class="btnrow"><button class="btn" onclick="go(4)">PREVIOUS</button><button class="btn primary" onclick="go(6)">NEXT</button></div>
+        </section>
+
+        <section class="panel wide step hidden" data-step="6">
+          <div class="phead"><div class="num">6</div><h2>Summary</h2></div>
+          <div class="sumsec" style="border-top:0;padding-top:0;margin-top:0">
+            <h3>Request Details</h3>
+            <div class="kv">
+              <div><div class="k">Agency Case Number</div><div class="v">323123</div></div>
+              <div><div class="k">Case Nature</div><div class="v">Credit Card Fraud or Theft</div></div>
+              <div><div class="k">Legal Process</div><div class="v">Search Warrant</div></div>
+              <div><div class="k">Records Start Date</div><div class="v">Jul 1, 2026</div></div>
+              <div><div class="k">Records End Date</div><div class="v">Jul 6, 2026</div></div>
+              <div><div class="k">Due At</div><div class="v">Jul 11, 2026</div></div>
+            </div>
+          </div>
+          <div class="sumsec">
+            <h3>Target Information <span class="small muted" style="font-weight:400">provenance carried through to the analyst</span></h3>
+            <div id="summaryTargets"></div>
+          </div>
+          <div class="btnrow"><button class="btn" onclick="go(5)">PREVIOUS</button><button class="btn primary" onclick="go(7)">SUBMIT</button></div>
+        </section>
+
+        <section class="panel step hidden" data-step="7">
+          <div class="center">
+            <h1 style="font-size:30px;margin:0">Request Submitted!</h1>
+            <p class="muted">Request (KDP-12) has successfully been submitted.</p>
+            <div class="big"><i data-lucide="check"></i></div>
+            <div style="font-weight:700;margin-bottom:16px">What next?</div>
+            <button class="btn" onclick="go(1)">BACK TO HOME</button>
+            <button class="btn primary" onclick="setPersona('analyst')">VIEW AS ANALYST →</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ANALYST REVIEW -->
+      <div id="analystView" class="wrap hidden">
+        <h1 class="page">Incoming Request · KDP-12</h1>
+        <div class="panel wide">
+          <div class="phead"><div class="num" style="background:var(--accent-2)">A</div><h2>Analyst Review</h2>
+            <div class="legend" style="margin-left:auto">
+              <span class="chip c-ext">AI-extracted</span>
+              <span class="chip c-mod">Agent-modified</span>
+              <span class="chip c-add">Agent-added</span>
+            </div>
+          </div>
+          <p class="muted small" style="margin-top:-8px">Validate the submitter's selectors against the attachment they uploaded. Highlights show exactly what was found in the document text; provenance shows what the agent changed.</p>
+          <div class="banner warn"><i data-lucide="triangle-alert"></i><span><b>2 selectors need your attention:</b> 1 was modified by the submitter and 1 could not be located in the document text.</span></div>
+          <div class="split">
+            <div class="tpane" id="tpaneAnalyst"></div>
+            <div class="doc">
+              <div class="dbar"><span class="fn"><i data-lucide="file-text"></i> tron_20250902_civil_complaint.pdf</span><span class="zoom">page 4 / 27</span></div>
+              <div class="page" id="docPageA">
+                <div class="ct">UNITED STATES DISTRICT COURT</div>
+                <div class="cs">VERIFIED COMPLAINT FOR FORFEITURE IN REM · Case 25-cv-2967</div>
+                <p>The defendant received and laundered proceeds through a wallet at
+                  <mark class="ok mono" data-h="a-wallet1">TC66d59uus8AWhYDvAgWM55T8NRa7KNWAN</mark>,
+                  operated by an individual using the email
+                  <mark class="ok" data-h="a-email">lingxingyu999@gmail.com</mark>,
+                  believed to be located in <mark class="ok" data-h="a-geo">Cambodia</mark> and
+                  residing in <mark class="ok" data-h="a-res1">Texas</mark>.</p>
+                <p>Blockchain analysis traced transfers that settled on
+                  <mark class="ok" data-h="a-date">August 21, 2024</mark>, recorded under transaction hash
+                  <mark class="ok mono" data-h="a-hash">6e8bf3694440b23e9fc95e2fc7cd8f1b869af323180db08c5edbae69819e1216</mark>.</p>
+                <p>A second subject residing in
+                  <mark class="ok" data-h="a-res2">West Palm Beach, Florida</mark>
+                  controlled wallet
+                  <mark class="ok mono" data-h="a-wallet2">bc1qvulygn35l3c7uspcj9lvacrzhk6gmccgppar3x</mark>.</p>
+              </div>
+              <div class="foot" id="docFootA"><span>Select a selector to locate it in the attachment.</span></div>
+            </div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" onclick="bulkAccept()">Accept all matched in document</button>
+            <button class="btn primary" onclick="analystDone()">Complete review</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+function icons(){ if(window.lucide) window.lucide.createIcons(); }
+
+var targets = [
+  { id:1, role:"", selectors:[
+    {id:"email", type:"Email Address", val:"lingxingyu999@gmail.com", prov:"ext", ver:"ok", h:"s-email"},
+    {id:"geo", type:"Geolocation", val:"Cambodia", prov:"ext", ver:"ok", h:"s-geo"},
+    {id:"res1", type:"Location of Residence", val:"Texas", prov:"ext", ver:"ok", h:"s-res1"},
+    {id:"amt", type:"Transaction Amount", val:"0.00366039 BTC", prov:"ext", ver:"rev", h:"s-amt", err:"Amount and currency must be separated", fix:{val:"0.00366039", note:"BTC"}},
+    {id:"wallet1", type:"Wallet Address", val:"TC66d59uus8AWhYDvAgWM55T8NRa7KNWAN", prov:"ext", ver:"ok", h:"s-wallet1", mono:1},
+    {id:"hash", type:"Transaction Hash", val:"6e8bf3694440b23e9fc95e2fc7cd8f1b869af323180db08c5edbae69819e1216", prov:"ext", ver:"ok", h:"s-hash", mono:1},
+    {id:"phone", type:"Phone Number", val:"", prov:"add", ver:"bad", h:null, placeholder:"Add manually…"}
+  ]},
+  { id:2, role:"", selectors:[
+    {id:"res2", type:"Location of Residence", val:"West Palm Beach, Florida", prov:"ext", ver:"ok", h:"s-res2"},
+    {id:"date", type:"Transaction Date", val:"21/08/2024", prov:"ext", ver:"rev", h:"s-date", err:"Must be YYYY-MM-DD", fix:{val:"2024-08-21"}},
+    {id:"wallet2", type:"Wallet Address", val:"bc1qvulygn35l3c7uspcj9lvacrzhk6gmccgppar3x", prov:"ext", ver:"ok", h:"s-wallet2", mono:1}
+  ]}
+];
+var roles = ["No role assigned","Primary Subject","Secondary Subject","Victim","Witness"];
+var provLabel = {ext:["AI-extracted","c-ext"], mod:["Agent-modified","c-mod"], add:["Agent-added","c-add"]};
+var SELTYPES=["Email Address","Phone Number","Geolocation","Location of Residence","Wallet Address","Transaction Amount","Transaction Date","Transaction Hash"];
+
+var current=1;
+function buildStepper(){var h="";for(var i=1;i<=6;i++){h+='<div class="s" data-si="'+i+'"></div>';}document.getElementById('stepper').innerHTML=h;}
+function paintStepper(){document.querySelectorAll('#stepper .s').forEach(function(el){var i=+el.dataset.si;el.className='s'+(i<current?' done':'')+(i===current?' on':'');});}
+function go(n){current=n;document.querySelectorAll('#agentView .step').forEach(function(s){s.classList.toggle('hidden', +s.dataset.step!==n);});document.getElementById('stepper').style.visibility=(n>=1&&n<=6)?'visible':'hidden';paintStepper();if(n===3)renderAgentTargets();if(n===6)renderSummary();icons();window.scrollTo({top:0,behavior:'smooth'});}
+
+function addFile(){document.getElementById('fileList').innerHTML='<div class="filerow"><div class="fi"><i data-lucide="file-text"></i></div><div><div style="font-weight:600;font-size:13px">tron_20250902_civil_complaint.pdf</div><div class="small muted">910.58 KB · application/pdf</div></div><div style="margin-left:auto;color:var(--bad-fg);cursor:pointer" onclick="document.getElementById(\'fileList\').innerHTML=\'\'"><i data-lucide="trash-2"></i></div></div>';icons();toast('Document added — will be processed for extraction');}
+
+function chip(t){return '<span class="chip '+t[1]+'">'+t[0]+'</span>';}
+function findSel(tid,sid){var t=targets.find(function(x){return x.id===tid;});return {t:t, s:t.selectors.find(function(x){return x.id===sid;})};}
+function rtRow(t,s){
+  var chips='<span class="chip ext">Extracted</span>'+(s.ver==='rev'?'<span class="chip c-rev">Review</span>':'')+(s.prov==='add'?'<span class="chip c-add">Added manually</span>':'');
+  var confirm=(s.ver==='rev')?'<span class="rt-cf" onclick="event.stopPropagation();confirmRev('+t.id+',\''+s.id+'\')">Confirm</span>':'';
+  var acts='<span class="acts">'+confirm+
+    '<span class="ai" title="Change type" onclick="event.stopPropagation();toast(\'Change type — demo\')"><i data-lucide="arrow-left-right"></i></span>'+
+    '<span class="ai" title="Copy" onclick="event.stopPropagation();toast(\'Copied\')"><i data-lucide="copy"></i></span>'+
+    '<span class="ai" title="Edit" onclick="event.stopPropagation();openEditModal('+t.id+',\''+s.id+'\')"><i data-lucide="square-pen"></i></span>'+
+    '<span class="ai" title="Delete" onclick="event.stopPropagation();delSel('+t.id+',\''+s.id+'\')"><i data-lucide="trash-2"></i></span></span>';
+  var val = s.val? '<div class="val'+(s.mono?' mono':'')+(s.err?' err':'')+'">'+s.val+'</div>'
+                 : '<div class="val" style="color:var(--ink-3)">'+ (s.placeholder||'') +'</div>';
+  var err = s.err? '<div class="rt-err">'+s.err+'</div>':'';
+  var nf = (s.ver==='bad'&&s.val)? '<div class="rt-err">Not found in the document — verify manually.</div>':'';
+  var opt = (s.ver==='bad'&&!s.val)? '<div class="small muted" style="margin-top:2px">Optional — not present in the document.</div>':'';
+  var sugg = (s.err&&s.fix)? '<div class="sugg">'+(s.fix.note?'Split off unit “'+s.fix.note+'”':'Suggested: '+s.fix.val)+' <button class="btn tiny" onclick="event.stopPropagation();acceptFix('+t.id+',\''+s.id+'\')">Accept</button></div>':'';
+  var vsrc = '<div class="vsrc" onclick="event.stopPropagation();pick(\''+s.id+'\',\''+(s.h||'')+'\')"><i data-lucide="scan-search"></i> View source</div>';
+  return '<div class="rt-row" data-sid="'+s.id+'" data-h="'+(s.h||'')+'" onclick="pick(\''+s.id+'\',\''+(s.h||'')+'\')">'+
+    '<div class="rt-top"><span class="rt-lbl">'+s.type+'</span>'+chips+acts+'</div>'+val+err+nf+opt+sugg+vsrc+'</div>';
+}
+function counts2(){var tt=targets.length,ss=0,nr=0,ed=0,noRole=0;targets.forEach(function(t){if(!t.role||t.role==='No role assigned')noRole++;t.selectors.forEach(function(s){ss++;if(s.ver==='rev')nr++;if(s.err)ed++;});});return{tt:tt,ss:ss,nr:nr,ed:ed,noRole:noRole};}
+function renderAgentTargets(){
+  var c=counts2();
+  var b='';
+  if(c.nr>0)b+='<div class="banner warn"><i data-lucide="triangle-alert"></i><span>'+c.nr+' selector(s) must be reviewed and confirmed before proceeding.</span></div>';
+  if(c.ed>0||c.noRole>0)b+='<div class="banner bad"><i data-lucide="circle-alert"></i><span>Before proceeding: '+c.ed+' selector(s) have invalid values, all targets need a role assigned.</span></div>';
+  document.getElementById('agentBanners').innerHTML=b;
+  var h='<div class="rt-found"><div class="rt-fh"><span style="color:var(--ok-fg);display:inline-flex"><i data-lucide="circle-check"></i></span> Found in Documents: '+c.tt+' target(s) · '+c.ss+' selector(s) <span style="margin-left:auto;color:var(--ink-3);display:inline-flex"><i data-lucide="chevron-up"></i></span></div>'+
+    '<div class="rt-mrow"><div class="rt-mbox"><b>'+c.tt+'</b><span>Targets</span></div><div class="rt-mbox"><b>'+c.ss+'</b><span>Selectors</span></div><div class="rt-mbox rev"><b>'+c.nr+'</b><span>Needs Review</span></div><div class="rt-mbox edit"><b>'+c.ed+'</b><span>Edits Needed</span></div></div>'+
+    '<div class="rt-docs">DOCUMENTS</div><div class="rt-docrow"><i data-lucide="file-text" style="width:16px;height:16px;color:var(--ink-3)"></i> tron_20250902_civil_complaint_25-cv-2967.pdf <span class="rt-proc">Processed</span></div></div>';
+  h+='<div class="rt-instr">Edit incorrect values, assign a role to each target, delete incorrect entries, and add any missing targets or selectors. Check the attestation box when complete.</div>';
+  h+='<div class="rt-add" onclick="toast(\'Add target — demo\')"><i data-lucide="plus"></i> Add Target</div>';
+  targets.forEach(function(t){
+    var rev=t.selectors.filter(function(s){return s.ver==='rev';}).length;
+    h+='<div class="rt-group"><div class="rt-head"><span class="av"><i data-lucide="user"></i></span><span class="tname">Target '+t.id+'</span><span class="cnt">'+t.selectors.length+' selectors</span>'+(rev?' <span class="chip c-rev">'+rev+' needs review</span>':'')+'<span class="sp"></span>'+
+       '<select onchange="setRole('+t.id+',this.value)">'+roles.map(function(r){return '<option'+(r===(t.role||"No role assigned")?' selected':'')+'>'+r+'</option>';}).join('')+'</select>'+
+       '<span class="hi" title="Delete target"><i data-lucide="trash-2"></i></span><span class="hi" title="Add selector"><i data-lucide="plus"></i></span></div>';
+    t.selectors.forEach(function(s){h+=rtRow(t,s);});
+    h+='</div>';
+  });
+  var gate=(c.nr===0&&c.ed===0&&c.noRole===0);
+  h+='<div class="attest"><input type="checkbox" id="attestBox" '+(gate?'':'disabled')+' onchange="updateNext()"><label for="attestBox">I\'ve reviewed each target against the source document. AI extraction assists but does not replace the legal review my agency is required to perform.</label></div>';
+  document.getElementById('tpaneAgent').innerHTML=h;icons();updateNext();
+}
+function confirmRev(tid,sid){var r=findSel(tid,sid);r.s.ver='ok';toast('Selector confirmed');renderAgentTargets();}
+function needsAttention(){var rev=0,role=0;targets.forEach(function(t){ if(!t.role||t.role==='No role assigned') role++; t.selectors.forEach(function(s){if(s.ver==='rev')rev++;});});return {rev:rev, role:role};}
+function acceptFix(tid,sid){var r=findSel(tid,sid),s=r.s;if(s.fix.val) s.val=s.fix.val;s.ver='ok'; s.prov='mod'; s.err=null; s.fix=null;toast('Corrected · marked Agent-modified');renderAgentTargets();}
+function setRole(tid,val){var t=targets.find(function(x){return x.id===tid;});t.role=val;renderAgentTargets();}
+function delSel(tid,sid){var t=targets.find(function(x){return x.id===tid;});t.selectors=t.selectors.filter(function(s){return s.id!==sid;});renderAgentTargets();}
+function updateNext(){var c=counts2();var box=document.getElementById('attestBox');document.getElementById('nextTargets').disabled = !(box&&box.checked&&c.nr===0&&c.ed===0&&c.noRole===0);}
+function pick(sid,h){
+  document.querySelectorAll('#tpaneAgent [data-sid]').forEach(function(el){el.classList.toggle('active',el.dataset.sid===sid);});
+  document.querySelectorAll('#docPage mark').forEach(function(m){m.classList.remove('sel');});
+  var foot=document.getElementById('docFoot');
+  if(h){var mk=document.querySelector('#docPage mark[data-h="'+h+'"]');if(mk){mk.classList.add('sel');mk.scrollIntoView({block:'center',behavior:'smooth'});foot.innerHTML='<i data-lucide="scan-search"></i><span>Located on page 4 — highlighted above.</span>';}}
+  else { foot.innerHTML='<i data-lucide="circle-alert"></i><span style="color:var(--bad-fg)">This value was not found in the document text — verify before submitting.</span>'; }
+  icons();
+}
+document.addEventListener('click',function(e){
+  var mk=e.target.closest('#docPage mark'); if(mk){var h=mk.dataset.h;var el=document.querySelector('#tpaneAgent [data-h="'+h+'"]');if(el){el.click();el.scrollIntoView({block:'center',behavior:'smooth'});}}
+  var mka=e.target.closest('#docPageA mark'); if(mka){var ha=mka.dataset.h;var ela=document.querySelector('#tpaneAnalyst .sel[data-h="'+ha+'"]');if(ela){ela.click();ela.scrollIntoView({block:'center',behavior:'smooth'});}}
+});
+function pageMsg(t){toast(t);}
+
+/* edit modal */
+function validate(type,val){val=(val||'').trim();if(type==='Transaction Date')return /^\d{4}-\d{2}-\d{2}$/.test(val)?null:'Must be a valid date in YYYY-MM-DD format';if(type==='Transaction Amount')return /^-?\d+(\.\d+)?$/.test(val)?null:'Must be a valid number';if(!val)return 'Value is required';return null;}
+function openEditModal(tid,sid){
+  var r=findSel(tid,sid),t=r.t,s=r.s;
+  var opts=SELTYPES.map(function(x){return '<option'+(x===s.type?' selected':'')+'>'+x+'</option>';}).join('');
+  var html='<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal">'+
+    '<div class="mh"><div><h3>Edit selector</h3><div class="msub">Target '+t.id+' · '+(t.role||'No role assigned')+'</div></div><span class="mx" onclick="closeModal()"><i data-lucide="x"></i></span></div>'+
+    '<hr>'+
+    '<div class="mfield"><label>Selector type</label><select id="mType" onchange="mValidate()">'+opts+'</select></div>'+
+    '<div class="mfield"><label>Value</label><input id="mVal" value="'+(s.val||'').replace(/"/g,'&quot;')+'" oninput="mValidate()"><div class="mhint" id="mHint"></div></div>'+
+    '<div class="minfo"><i data-lucide="info"></i> Saving marks this selector “Agent-modified” so the analyst can see it was edited.</div>'+
+    '<div class="mfoot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" id="mSave" onclick="saveModal('+t.id+',\''+s.id+'\')">Save changes</button></div>'+
+    '</div></div>';
+  document.getElementById('modalRoot').innerHTML=html;icons();mValidate();
+  setTimeout(function(){var el=document.getElementById('mVal');if(el){el.focus();el.select();}},20);
+}
+function mValidate(){var err=validate(document.getElementById('mType').value,document.getElementById('mVal').value);var hint=document.getElementById('mHint'),save=document.getElementById('mSave');if(err){hint.className='mhint err';hint.textContent=err;save.disabled=true;}else{hint.className='mhint ok';hint.textContent='Looks good';save.disabled=false;}}
+function saveModal(tid,sid){var type=document.getElementById('mType').value,val=document.getElementById('mVal').value;if(validate(type,val))return;var r=findSel(tid,sid),s=r.s;s.type=type;s.val=val;s.err=null;s.fix=null;s.ver='ok';s.prov='mod';if(!s.h)s.ver='bad';closeModal();toast('Value updated · marked Agent-modified');renderAgentTargets();}
+function closeModal(){document.getElementById('modalRoot').innerHTML='';}
+
+/* summary */
+function renderSummary(){
+  var h='';
+  targets.forEach(function(t){
+    h+='<div style="margin-bottom:12px"><div class="small muted" style="margin-bottom:5px">Target '+t.id+' · '+(t.role||'No role assigned')+'</div>';
+    t.selectors.forEach(function(s){ if(!s.val)return;
+      var flag = (s.ver==='bad')? ' <span class="chip c-bad">Not in document</span>':'';
+      h+='<div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)"><div style="width:150px;font-size:11px;color:var(--ink-2)">'+s.type+'</div><div style="flex:1;font-size:12.5px'+(s.mono?';font-family:var(--mono);font-size:11px;word-break:break-all':'')+'">'+s.val+'</div>'+chip(provLabel[s.prov])+flag+'</div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('summaryTargets').innerHTML=h;
+}
+
+/* analyst */
+var analystData=[
+  {id:1,role:"Primary Subject",selectors:[
+    {id:"email",type:"Email Address",val:"lingxingyu999@gmail.com",prov:"ext",ver:"ok",h:"a-email"},
+    {id:"geo",type:"Geolocation",val:"Cambodia",prov:"ext",ver:"ok",h:"a-geo"},
+    {id:"res1",type:"Location of Residence",val:"Texas",prov:"ext",ver:"ok",h:"a-res1"},
+    {id:"amt",type:"Transaction Amount",val:"0.00366039",prov:"mod",ver:"ok",h:null,note:"submitter split “BTC” unit"},
+    {id:"wallet1",type:"Wallet Address",val:"TC66d59uus8AWhYDvAgWM55T8NRa7KNWAN",prov:"ext",ver:"ok",h:"a-wallet1",mono:1},
+    {id:"hash",type:"Transaction Hash",val:"6e8bf3694440b23e9fc95e2fc7cd8f1b869af323180db08c5edbae69819e1216",prov:"ext",ver:"ok",h:"a-hash",mono:1},
+    {id:"phone",type:"Phone Number",val:"+1 561 555 0199",prov:"add",ver:"bad",h:null,note:"agent-entered, not in attachment"}
+  ]},
+  {id:2,role:"Secondary Subject",selectors:[
+    {id:"res2",type:"Location of Residence",val:"West Palm Beach, Florida",prov:"ext",ver:"ok",h:"a-res2"},
+    {id:"date",type:"Transaction Date",val:"2024-08-21",prov:"mod",ver:"ok",h:"a-date",note:"reformatted from 21/08/2024"},
+    {id:"wallet2",type:"Wallet Address",val:"bc1qvulygn35l3c7uspcj9lvacrzhk6gmccgppar3x",prov:"ext",ver:"ok",h:"a-wallet2",mono:1}
+  ]}
+];
+var verdicts={};
+function renderAnalyst(){
+  var h='';var mod=0,add=0,ss=0;
+  analystData.forEach(function(t){t.selectors.forEach(function(s){ss++;if(s.prov==='mod')mod++;if(s.prov==='add')add++;});});
+  h+='<div class="metrics"><div class="metric"><b>'+ss+'</b><span>selectors</span></div>'+
+     '<div class="metric"><b style="color:#37508a">'+mod+'</b><span>agent-modified</span></div>'+
+     '<div class="metric"><b>'+add+'</b><span>agent-added</span></div></div>';
+  analystData.forEach(function(t){
+    h+='<div class="tgroup"><div class="tgh"><span class="av"><i data-lucide="user"></i></span><b>Target '+t.id+'</b> <span class="small muted">'+t.role+'</span></div>';
+    t.selectors.forEach(function(s){
+      var v=verdicts[t.id+'-'+s.id];
+      var chips=chip(provLabel[s.prov])+(s.ver==='bad'?' <span class="chip c-bad">Not in document</span>':'');
+      var note=s.note?'<div class="small muted" style="margin-top:3px">'+s.note+'</div>':'';
+      var actions = v? '<span class="verdict '+(v==='acc'?'v-acc':'v-flag')+'">'+(v==='acc'?'Accepted':'Flagged')+'</span>'
+        : '<span class="aactions"><button class="btn tiny" onclick="event.stopPropagation();verdict('+t.id+',\''+s.id+'\',\'acc\')">Accept</button><button class="btn tiny" onclick="event.stopPropagation();verdict('+t.id+',\''+s.id+'\',\'flag\')">Flag</button></span>';
+      var vsrc='<div class="vsrc" onclick="event.stopPropagation();pickA(\''+s.id+'\',\''+(s.h||'')+'\')"><i data-lucide="scan-search"></i> View source</div>';
+      h+='<div class="sel" data-sid="'+s.id+'" data-h="'+(s.h||'')+'" onclick="pickA(\''+s.id+'\',\''+(s.h||'')+'\')"><div class="r1"><span class="lbl">'+s.type+'</span>'+chips+'</div>'+
+         '<div style="display:flex;align-items:center;gap:9px"><div class="val'+(s.mono?' mono':'')+'" style="flex:1">'+s.val+'</div>'+actions+'</div>'+note+vsrc+'</div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('tpaneAnalyst').innerHTML=h;icons();
+}
+function verdict(tid,sid,v){verdicts[tid+'-'+sid]=v;renderAnalyst();toast(v==='acc'?'Selector accepted':'Selector flagged for follow-up');}
+function bulkAccept(){analystData.forEach(function(t){t.selectors.forEach(function(s){if(s.ver==='ok')verdicts[t.id+'-'+s.id]='acc';});});renderAnalyst();toast('All matched selectors accepted');}
+function analystDone(){toast('Review complete — request routed');}
+function pickA(sid,h){
+  document.querySelectorAll('#tpaneAnalyst .sel').forEach(function(el){el.classList.toggle('active',el.dataset.sid===sid);});
+  document.querySelectorAll('#docPageA mark').forEach(function(m){m.classList.remove('sel');});
+  var foot=document.getElementById('docFootA');
+  if(h){var mk=document.querySelector('#docPageA mark[data-h="'+h+'"]');if(mk){mk.classList.add('sel');mk.scrollIntoView({block:'center',behavior:'smooth'});foot.innerHTML='<i data-lucide="scan-search"></i><span>Located in attachment — highlighted above.</span>';}}
+  else{foot.innerHTML='<i data-lucide="circle-alert"></i><span style="color:var(--bad-fg)">Not present in the attachment — submitter entered this manually.</span>';}
+  icons();
+}
+
+function setPersona(p){
+  document.getElementById('p-agent').classList.toggle('on',p==='agent');
+  document.getElementById('p-analyst').classList.toggle('on',p==='analyst');
+  document.getElementById('agentView').classList.toggle('hidden',p!=='agent');
+  document.getElementById('analystView').classList.toggle('hidden',p!=='analyst');
+  document.getElementById('nav-new').classList.toggle('active',p==='agent');
+  document.getElementById('nav-req').classList.toggle('active',p==='analyst');
+  if(p==='analyst') renderAnalyst();
+  icons();window.scrollTo({top:0,behavior:'smooth'});
+}
+
+var tmo;function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(tmo);tmo=setTimeout(function(){el.classList.remove('show');},1800);}
+buildStepper();go(1);addFile();icons();
+</script>
+</body>
+</html>
