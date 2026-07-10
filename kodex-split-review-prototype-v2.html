@@ -436,9 +436,8 @@ function rtRow(t,s){
   var nf = (s.ver==='bad'&&s.val)? '<div class="rt-err">Not found in the document — verify manually.</div>':'';
   var opt = (s.ver==='bad'&&!s.val)? '<div class="small muted" style="margin-top:2px">Optional — not present in the document.</div>':'';
   var sugg = (s.err&&s.fix)? '<div class="sugg">'+(s.fix.note?'Split off unit “'+s.fix.note+'”':'Suggested: '+s.fix.val)+' <button class="btn tiny" onclick="event.stopPropagation();acceptFix('+t.id+',\''+s.id+'\')">Accept</button></div>':'';
-  var vsrc = '<div class="vsrc" onclick="event.stopPropagation();pick(\''+s.id+'\',\''+(s.h||'')+'\')"><i data-lucide="scan-search"></i> View source</div>';
   return '<div class="rt-row" data-sid="'+s.id+'" data-h="'+(s.h||'')+'" onclick="pick(\''+s.id+'\',\''+(s.h||'')+'\')">'+
-    '<div class="rt-top"><span class="rt-lbl">'+s.type+'</span>'+chips+acts+'</div>'+val+err+nf+opt+sugg+vsrc+'</div>';
+    '<div class="rt-top"><span class="rt-lbl">'+s.type+'</span>'+chips+acts+'</div>'+val+err+nf+opt+sugg+'</div>';
 }
 function counts2(){var tt=targets.length,ss=0,nr=0,ed=0,noRole=0;targets.forEach(function(t){if(!t.role||t.role==='No role assigned')noRole++;t.selectors.forEach(function(s){ss++;if(s.ver==='rev')nr++;if(s.err)ed++;});});return{tt:tt,ss:ss,nr:nr,ed:ed,noRole:noRole};}
 function renderAgentTargets(){
@@ -550,9 +549,8 @@ function renderAnalyst(){
       var note=s.note?'<div class="small muted" style="margin-top:3px">'+s.note+'</div>':'';
       var actions = v? '<span class="verdict '+(v==='acc'?'v-acc':'v-flag')+'">'+(v==='acc'?'Accepted':'Flagged')+'</span>'
         : '<span class="aactions"><button class="btn tiny" onclick="event.stopPropagation();verdict('+t.id+',\''+s.id+'\',\'acc\')">Accept</button><button class="btn tiny" onclick="event.stopPropagation();verdict('+t.id+',\''+s.id+'\',\'flag\')">Flag</button></span>';
-      var vsrc='<div class="vsrc" onclick="event.stopPropagation();pickA(\''+s.id+'\',\''+(s.h||'')+'\')"><i data-lucide="scan-search"></i> View source</div>';
       h+='<div class="sel" data-sid="'+s.id+'" data-h="'+(s.h||'')+'" onclick="pickA(\''+s.id+'\',\''+(s.h||'')+'\')"><div class="r1"><span class="lbl">'+s.type+'</span>'+chips+'</div>'+
-         '<div style="display:flex;align-items:center;gap:9px"><div class="val'+(s.mono?' mono':'')+'" style="flex:1">'+s.val+'</div>'+actions+'</div>'+note+vsrc+'</div>';
+         '<div style="display:flex;align-items:center;gap:9px"><div class="val'+(s.mono?' mono':'')+'" style="flex:1">'+s.val+'</div>'+actions+'</div>'+note+'</div>';
     });
     h+='</div>';
   });
