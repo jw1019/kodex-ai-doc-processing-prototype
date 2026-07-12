@@ -60,7 +60,7 @@
   .filerow .fi{width:34px;height:34px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .field label{display:block;font-size:11px;color:var(--ink-2);margin:0 4px 5px}
-  .field input,.field select{width:100%;padding:12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;background:#fff}
+  .field input,.field select{width:100%;height:46px;padding:0 12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;background:#fff;box-sizing:border-box}
   .chip{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.2px}
   .c-ext{background:#e9efe6;color:#48583f}
   .c-mod{background:#e7ecf7;color:#37508a}
@@ -164,6 +164,7 @@
   .rt-head .cnt{font-size:11.5px;color:var(--ink-2)}
   .rt-head .sp{flex:1}
   .rt-head select{font-size:11px;padding:5px 7px;border:1px solid var(--line-2);border-radius:7px;background:#fff}
+  .rt-head select.norole{border-color:var(--bad-fg);color:var(--bad-fg);font-weight:700;background:#fdf0f0;box-shadow:0 0 0 2px rgba(163,45,45,.14)}
   .rt-head .hi{color:var(--ink-3);cursor:pointer;display:inline-flex}
   .rt-head .hi svg.lucide{width:15px;height:15px}
   .rt-row{display:flex;flex-direction:column;gap:5px;padding:11px 13px;border-top:1px solid var(--line);cursor:pointer}
@@ -199,6 +200,22 @@
   .minfo svg.lucide{flex:none;color:var(--ink-3);width:15px;height:15px}
   .mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
   .hidden{display:none!important}
+  .procbar{display:flex;align-items:center;gap:10px;max-width:900px;margin:0 auto 16px;background:#f4f2fd;border:1px solid #d9d2f5;border-radius:10px;padding:9px 14px;font-size:12.5px;color:var(--accent);font-weight:600}
+  .procbar .sp{width:16px;height:16px;border:2px solid #cfc7ef;border-top-color:var(--accent-2);border-radius:50%;animation:spin .8s linear infinite;flex:none}
+  .procbar.done{background:#e6f4ea;border-color:#bfe3cc;color:#137a3e}
+  .procbar .skip{margin-left:auto;color:var(--accent);cursor:pointer;font-weight:700}
+  .procbar.done .skip{display:none}
+  .tload{display:flex;flex-direction:column;align-items:center;gap:12px;padding:44px 0;color:var(--ink-2);font-size:13px}
+  .tload .sp{width:30px;height:30px;border:3px solid #e3def5;border-top-color:var(--accent-2);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .proc .procrow{display:flex;align-items:center;gap:14px;padding:16px 4px;border-bottom:1px solid var(--line);font-size:15px}
+  .proc .procrow.wait{opacity:.5}
+  .proc .ic{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:#efedf9;color:#8a86a8}
+  .proc .procrow.run .ic{background:var(--accent-2);color:#fff}
+  .proc .procrow.done .ic{background:var(--ok-bg);color:var(--ok-fg)}
+  .proc .ic svg.lucide{width:16px;height:16px}
+  .spin{animation:spin 1s linear infinite}
+  .sub{font-size:12.5px;color:var(--ink-3)}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#131111;color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
   .toast.show{opacity:1}
 </style>
@@ -246,7 +263,14 @@
           <div class="drop"><div class="disc"><i data-lucide="file-text"></i></div><div style="font-weight:600;color:var(--ink)">Drag and drop files here</div><div style="margin:8px 0">OR</div><button class="btn primary" onclick="addFile()">BROWSE</button></div>
           <div class="hint">Accepted: PDF and Word (.docx) only · Max 5 files · Uploaded documents are processed to auto-extract targets.</div>
           <div id="fileList"></div>
-          <div class="btnrow"><button class="btn ghost" disabled>PREVIOUS</button><button class="btn primary" onclick="go(2)">NEXT</button></div>
+          <div class="btnrow"><button class="btn ghost" disabled>PREVIOUS</button><button class="btn primary" onclick="startProcessing()">ANALYZE &amp; CONTINUE</button></div>
+        </section>
+
+        <!-- PROCESSING -->
+        <section class="panel hidden" id="processing" style="max-width:640px">
+          <div class="phead"><div class="num"><i data-lucide="sparkles"></i></div><h2>Reading your document</h2></div>
+          <p class="muted small" style="margin-top:-8px">Kodex is analyzing <b>tron_20250902_civil_complaint.pdf</b>. This usually takes a few seconds.</p>
+          <div class="proc" id="procList"></div>
         </section>
 
         <section class="panel step hidden" data-step="2">
@@ -425,7 +449,15 @@ var SELTYPES=["Email Address","Phone Number","Geolocation","Location of Residenc
 var current=1;
 function buildStepper(){var h="";for(var i=1;i<=6;i++){h+='<div class="s" data-si="'+i+'"></div>';}document.getElementById('stepper').innerHTML=h;}
 function paintStepper(){document.querySelectorAll('#stepper .s').forEach(function(el){var i=+el.dataset.si;el.className='s'+(i<current?' done':'')+(i===current?' on':'');});}
-function go(n){current=n;document.querySelectorAll('#agentView .step').forEach(function(s){s.classList.toggle('hidden', +s.dataset.step!==n);});document.getElementById('stepper').style.visibility=(n>=1&&n<=6)?'visible':'hidden';paintStepper();if(n===3){renderAgentTargets();applyDoc();}if(n===6)renderSummary();icons();window.scrollTo({top:0,behavior:'smooth'});}
+function go(n){current=n;var pr=document.getElementById('processing');if(pr)pr.classList.add('hidden');document.querySelectorAll('#agentView .step').forEach(function(s){s.classList.toggle('hidden', +s.dataset.step!==n);});document.getElementById('stepper').style.visibility=(n>=1&&n<=6)?'visible':'hidden';paintStepper();if(n===3){renderAgentTargets();applyDoc();}if(n===6)renderSummary();icons();window.scrollTo({top:0,behavior:'smooth'});}
+function startProcessing(){
+  document.querySelectorAll('#agentView .step').forEach(function(s){s.classList.add('hidden');});document.getElementById('stepper').style.visibility='visible';
+  var rows=[['Reading the document','OCR and text extraction · 27 pages'],['Extracting request details','Case number, legal process, dates'],['Finding targets and selectors','Emails, wallets, locations, transactions'],['Validating identifiers','Format checks and document match']];
+  var p=document.getElementById('processing');p.classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});
+  function paint(active){var h='';rows.forEach(function(r,i){var st=i<active?'done':(i===active?'run':'wait');var ic=i<active?'check':(i===active?'loader-circle':'circle');h+='<div class="procrow '+st+'"><div class="ic"><i data-lucide="'+ic+'" class="'+(st==='run'?'spin':'')+'"></i></div><div><div>'+r[0]+'</div><div class="sub">'+r[1]+'</div></div></div>';});document.getElementById('procList').innerHTML=h;icons();}
+  var i=0;paint(0);
+  var iv=setInterval(function(){i++;if(i<rows.length){paint(i);}else if(i===rows.length){paint(rows.length);}else{clearInterval(iv);go(2);}},820);
+}
 
 function addFile(){document.getElementById('fileList').innerHTML='<div class="filerow"><div class="fi"><i data-lucide="file-text"></i></div><div><div style="font-weight:600;font-size:13px">tron_20250902_civil_complaint.pdf</div><div class="small muted">910.58 KB · application/pdf</div></div><div style="margin-left:auto;color:var(--bad-fg);cursor:pointer" onclick="document.getElementById(\'fileList\').innerHTML=\'\'"><i data-lucide="trash-2"></i></div></div>';icons();toast('Document added — will be processed for extraction');}
 
@@ -453,7 +485,7 @@ function renderAgentTargets(){
   var c=counts2();
   var b='';
   if(c.nr>0)b+='<div class="banner warn"><i data-lucide="triangle-alert"></i><span>'+c.nr+' selector(s) must be reviewed and confirmed before proceeding.</span></div>';
-  if(c.ed>0||c.noRole>0)b+='<div class="banner bad"><i data-lucide="circle-alert"></i><span>Before proceeding: '+c.ed+' selector(s) have invalid values, all targets need a role assigned.</span></div>';
+  if(c.ed>0||c.noRole>0){var parts=[];if(c.ed>0)parts.push(c.ed+' selector(s) have invalid values');if(c.noRole>0)parts.push(c.noRole+' target(s) still need a role assigned');b+='<div class="banner bad"><i data-lucide="circle-alert"></i><span>Before proceeding: '+parts.join(', and ')+'.</span></div>';}
   document.getElementById('agentBanners').innerHTML=b;
   var h='<div class="rt-found"><div class="rt-fh"><span style="color:var(--ok-fg);display:inline-flex"><i data-lucide="circle-check"></i></span> Found in Documents: '+c.tt+' target(s) · '+c.ss+' selector(s) <span style="margin-left:auto;color:var(--ink-3);display:inline-flex"><i data-lucide="chevron-up"></i></span></div>'+
     '<div class="rt-mrow"><div class="rt-mbox"><b>'+c.tt+'</b><span>Targets</span></div><div class="rt-mbox"><b>'+c.ss+'</b><span>Selectors</span></div><div class="rt-mbox rev"><b>'+c.nr+'</b><span>Needs Review</span></div><div class="rt-mbox edit"><b>'+c.ed+'</b><span>Edits Needed</span></div></div>'+
@@ -462,8 +494,9 @@ function renderAgentTargets(){
   h+='<div class="rt-add" onclick="toast(\'Add target — demo\')"><i data-lucide="plus"></i> Add Target</div>';
   targets.forEach(function(t){
     var rev=t.selectors.filter(function(s){return s.ver==='rev';}).length;
+    var norole=(!t.role||t.role==='No role assigned');
     h+='<div class="rt-group"><div class="rt-head"><span class="av"><i data-lucide="user"></i></span><span class="tname">Target '+t.id+'</span><span class="cnt">'+t.selectors.length+' selectors</span>'+(rev?' <span class="chip c-rev">'+rev+' needs review</span>':'')+'<span class="sp"></span>'+
-       '<select onchange="setRole('+t.id+',this.value)">'+roles.map(function(r){return '<option'+(r===(t.role||"No role assigned")?' selected':'')+'>'+r+'</option>';}).join('')+'</select>'+
+       '<select class="rolesel'+(norole?' norole':'')+'" onchange="setRole('+t.id+',this.value)">'+roles.map(function(r){return '<option'+(r===(t.role||"No role assigned")?' selected':'')+'>'+r+'</option>';}).join('')+'</select>'+
        '<span class="hi" title="Delete target"><i data-lucide="trash-2"></i></span><span class="hi" title="Add selector"><i data-lucide="plus"></i></span></div>';
     t.selectors.forEach(function(s){h+=rtRow(t,s);});
     h+='</div>';
