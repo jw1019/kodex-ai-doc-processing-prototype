@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kodex — AI Document Processing Prototype</title>
+<title>Kodex — Split-Screen Review v2</title>
 <style>
   :root{
     --nav:#12100f; --nav-2:#1b1917; --accent:#6d28d9; --accent-2:#7c3aed;
@@ -15,33 +15,29 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--page)}
+  svg.lucide{width:18px;height:18px;stroke-width:2;vertical-align:middle;flex:none}
   .app{display:flex;min-height:100vh}
-  /* nav */
   .nav{width:210px;background:var(--nav);color:#cfcdc8;flex-shrink:0;display:flex;flex-direction:column;padding:18px 0}
   .nav .brandrow{display:flex;align-items:center;justify-content:flex-end;padding:0 16px 22px}
-  .nav .collapse{width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;color:#0c4b3a;font-weight:700;font-size:18px;cursor:pointer}
+  .nav .collapse{width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;color:#0c4b3a;cursor:pointer}
   .nav a{display:flex;align-items:center;gap:12px;padding:11px 20px;color:#cfcdc8;text-decoration:none;font-size:14px;cursor:pointer}
   .nav a.active,.nav a:hover{background:var(--nav-2);color:#fff}
+  .nav a svg.lucide{width:17px;height:17px;opacity:.9}
   .nav .sec{margin-top:6px}
   .nav .spacer{flex:1}
-  .nav .ico{width:18px;text-align:center;opacity:.9}
-  /* main */
   .main{flex:1;display:flex;flex-direction:column;min-width:0}
   .topbar{background:var(--nav);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:16px 26px}
   .topbar .title{font-weight:800;font-size:19px;letter-spacing:.2px}
-  .topbar .sub{font-size:11px;color:#a9a7a1;text-align:right}
   .persona{display:flex;gap:0;background:var(--nav-2);border-radius:9px;padding:3px}
   .persona button{border:0;background:transparent;color:#bdbbb5;font-size:12.5px;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:600}
   .persona button.on{background:var(--accent-2);color:#fff}
   .content{padding:26px;flex:1}
   .wrap{max-width:1120px;margin:0 auto}
   h1.page{text-align:center;font-size:26px;margin:6px 0 18px}
-  /* stepper */
   .steps{display:flex;gap:10px;justify-content:center;max-width:760px;margin:0 auto 22px}
   .steps .s{height:7px;flex:1;border-radius:6px;background:#e4e0f5}
   .steps .s.on{background:var(--accent-2)}
   .steps .s.done{background:#c9c2f0}
-  /* card */
   .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;max-width:820px;margin:0 auto;box-shadow:0 1px 2px rgba(0,0,0,.03)}
   .panel.wide{max-width:1120px}
   .phead{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
@@ -49,7 +45,6 @@
   .phead h2{margin:0;font-size:22px;font-weight:700}
   .muted{color:var(--ink-2)}
   .small{font-size:12.5px}
-  /* buttons */
   .btnrow{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
   .btn{border:1px solid var(--line-2);background:#fff;color:var(--ink);padding:10px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.3px}
   .btn:hover{background:#faf9f7}
@@ -57,17 +52,15 @@
   .btn.primary:disabled{background:#cfcadb;border-color:#cfcadb;cursor:not-allowed}
   .btn.ghost{background:transparent}
   .btn.tiny{padding:5px 11px;font-size:11.5px;border-radius:7px}
-  /* upload */
   .drop{border:2px dashed var(--line-2);border-radius:12px;padding:34px;text-align:center;color:var(--ink-2)}
-  .drop .disc{width:48px;height:48px;border-radius:50%;background:#4b4a46;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:20px}
+  .drop .disc{width:48px;height:48px;border-radius:50%;background:#4b4a46;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+  .drop .disc svg.lucide{width:22px;height:22px;color:#fff}
+  .hint{font-size:11px;color:var(--ink-3);margin:5px 4px 0}
   .filerow{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px}
   .filerow .fi{width:34px;height:34px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center}
-  /* form */
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .field label{display:block;font-size:11px;color:var(--ink-2);margin:0 4px 5px}
-  .field input,.field select{width:100%;padding:12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;background:#fff}
-  .hint{font-size:11px;color:var(--ink-3);margin:5px 4px 0}
-  /* chips */
+  .field input,.field select{width:100%;height:46px;padding:0 12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;background:#fff;box-sizing:border-box}
   .chip{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.2px}
   .c-ext{background:#e9efe6;color:#48583f}
   .c-mod{background:#e7ecf7;color:#37508a}
@@ -75,26 +68,37 @@
   .c-ok{background:var(--ok-bg);color:var(--ok-fg)}
   .c-rev{background:var(--warn-bg);color:var(--warn-fg)}
   .c-bad{background:var(--bad-bg);color:var(--bad-fg)}
-  /* banners */
   .banner{border-radius:10px;padding:12px 15px;font-size:13px;margin-bottom:12px;display:flex;gap:9px;align-items:flex-start}
+  .banner svg.lucide{width:16px;height:16px;margin-top:1px;flex:none}
   .banner.warn{background:#fdfbe9;color:#6b5d0b;border:1px solid #eee2a8}
   .banner.bad{background:#fdeeee;color:#8f2a2a;border:1px solid #f0c9c9}
+  /* doc show/hide */
+  .doctoggle{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:#fff;color:var(--ink-2);font-size:12px;font-weight:700;padding:7px 11px;border-radius:8px;cursor:pointer}
+  .doctoggle:hover{background:#faf9f7}
+  .doctoggle svg.lucide{width:15px;height:15px}
+  .dbar-r{display:flex;align-items:center;gap:10px}
+  .dcollapse{cursor:pointer;display:inline-flex;color:var(--ink-3);padding:2px 5px;border:1px solid var(--line);border-radius:6px}
+  .dcollapse:hover{background:#f1f0ee}
+  .dcollapse svg.lucide{width:14px;height:14px}
+  .split.docoff{grid-template-columns:1fr}
   /* SPLIT */
   .split{display:grid;grid-template-columns:1fr 1.08fr;gap:20px;align-items:start}
   .doc{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;display:flex;flex-direction:column;position:sticky;top:16px}
   .doc .dbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-2);background:#fafaf8}
-  .doc .dbar .zoom{display:flex;gap:6px}
-  .doc .dbar .zoom span{cursor:pointer;padding:1px 7px;border:1px solid var(--line);border-radius:6px}
-  .page{padding:22px;font-size:12.5px;line-height:2.05;max-height:calc(100vh - 190px);overflow:auto}
+  .doc .dbar .fn{display:flex;align-items:center;gap:7px}
+  .doc .dbar .zoom{display:flex;gap:6px;align-items:center}
+  .doc .dbar .zoom span{cursor:pointer;display:inline-flex;padding:1px 5px;border:1px solid var(--line);border-radius:6px}
+  .doc .dbar svg.lucide{width:15px;height:15px}
+  .page{padding:22px;font-size:12.5px;line-height:1.6;max-height:calc(100vh - 190px);overflow:auto}
   .page .ct{text-align:center;font-weight:700;letter-spacing:.4px;margin-bottom:4px}
   .page .cs{text-align:center;color:var(--ink-2);margin-bottom:16px;font-size:11.5px}
-  mark{border-radius:4px;padding:1px 3px;cursor:pointer;transition:outline .12s,box-shadow .12s}
+  mark{display:inline-block;line-height:1;border-radius:4px;padding:0 4px;vertical-align:middle;cursor:pointer;transition:outline .12s,box-shadow .12s}
   mark.ok{background:var(--ok-bg);color:var(--ok-fg)}
   mark.rev{background:var(--warn-bg);color:var(--warn-fg)}
-  mark.mono{font-family:var(--mono);font-size:11px}
-  mark.sel{outline:2px solid var(--accent-2);box-shadow:0 0 0 3px rgba(124,58,237,.16)}
+  mark.mono{display:inline;vertical-align:baseline;line-height:inherit;padding:1px 3px;font-family:var(--mono);font-size:11px}
+  mark.sel{outline:2px solid var(--accent-2);box-shadow:0 0 0 2px rgba(124,58,237,.16)}
   .foot{padding:9px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:7px;min-height:36px}
-  /* target pane */
+  .foot svg.lucide{width:14px;height:14px}
   .tpane{display:flex;flex-direction:column;gap:0}
   .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
   .metric{background:#faf9f7;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
@@ -102,7 +106,8 @@
   .metric span{font-size:10.5px;color:var(--ink-2)}
   .tgroup{margin-bottom:2px}
   .tgh{display:flex;align-items:center;gap:9px;padding:14px 2px 10px;border-bottom:2px solid var(--line-2);margin-top:10px}
-  .tgh .av{width:26px;height:26px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .tgh .av{width:26px;height:26px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center}
+  .tgh .av svg.lucide{width:15px;height:15px;color:#fff}
   .tgh .role{margin-left:auto}
   .tgh select{font-size:11.5px;padding:5px 8px;border:1px solid var(--line-2);border-radius:7px;background:#fff}
   .sel{padding:13px 4px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:0}
@@ -113,48 +118,173 @@
   .sel .val{font-size:13px}
   .sel .val.mono{font-family:var(--mono);font-size:11.5px;word-break:break-all}
   .sel .val.err{color:var(--bad-fg)}
-  .sel .acts{margin-left:auto;display:flex;gap:8px;color:var(--ink-3)}
-  .sel .acts i{cursor:pointer}
+  .sel .acts{margin-left:auto;display:flex;gap:11px;color:var(--ink-3)}
+  .sel .acts .ai{cursor:pointer;display:inline-flex}
+  .sel .acts .ai svg.lucide{width:15px;height:15px}
+  .vsrc{font-size:11.5px;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-top:6px;width:fit-content}
+  .vsrc svg.lucide{width:14px;height:14px}
   .sugg{font-size:11px;color:var(--warn-fg);margin-top:5px;display:flex;align-items:center;gap:8px}
   .sugg .btn.tiny{border-color:var(--warn-fg);color:var(--warn-fg)}
   .attest{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:12.5px;background:#fff}
-  /* analyst extras */
   .aactions{display:flex;gap:8px;margin-left:auto}
   .verdict{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px}
   .v-acc{background:var(--ok-bg);color:var(--ok-fg)}
   .v-flag{background:var(--bad-bg);color:var(--bad-fg)}
-  /* confirm screen */
   .center{text-align:center;padding:40px 0}
-  .center .big{width:76px;height:76px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;margin:18px auto}
+  .center .big{width:76px;height:76px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;margin:18px auto}
+  .center .big svg.lucide{width:34px;height:34px;color:#fff}
   .kv{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 20px}
   .kv .k{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px}
   .kv .v{font-size:13px;margin-top:2px}
   .sumsec{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
   .sumsec h3{font-size:16px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
-  .hidden{display:none!important}
   .legend{display:flex;gap:8px;flex-wrap:wrap}
+  /* review-targets table treatment (agent, split left pane) */
+  .chip.ext{background:#e6f4ea;color:#137a3e}
+  .rt-found{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:12px}
+  .rt-fh{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:11px}
+  .rt-fh svg.lucide{width:16px;height:16px}
+  .rt-mrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .rt-mbox{background:#f6f5f2;border:1px solid var(--line);border-radius:10px;padding:9px 6px;text-align:center}
+  .rt-mbox b{display:block;font-size:18px;font-weight:800}
+  .rt-mbox span{font-size:10px;color:var(--ink-2)}
+  .rt-mbox.rev{background:#fbf4df;border-color:#efe1b2}.rt-mbox.rev b{color:var(--warn-fg)}
+  .rt-mbox.edit{background:#fcecec;border-color:#f2cccc}.rt-mbox.edit b{color:var(--bad-fg)}
+  .rt-docs{font-size:10px;color:var(--ink-3);letter-spacing:.5px;margin-bottom:5px}
+  .rt-docrow{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  .rt-proc{background:#e6f4ea;color:#137a3e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .rt-instr{font-size:11.5px;color:var(--ink-3);margin-bottom:11px}
+  .rt-add{width:100%;border:1.5px dashed #c9c2f0;background:#faf9ff;color:var(--accent);border-radius:12px;padding:11px;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .rt-add svg.lucide{width:16px;height:16px}
+  .rt-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+  .rt-head{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f4f2fb}
+  .rt-head .av{width:24px;height:24px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+  .rt-head .av svg.lucide{width:14px;height:14px;color:#fff}
+  .rt-head .tname{font-weight:700;font-size:14px}
+  .rt-head .cnt{font-size:11.5px;color:var(--ink-2)}
+  .rt-head .sp{flex:1}
+  .rt-head select{font-size:12px;padding:8px 11px;border:1px solid var(--line-2);border-radius:7px;background:#fff}
+  .rt-head select.norole{border-color:#e0b64f;background:#fdf7e6;color:#8a5a12;font-weight:600}
+  .rt-head .hi{color:var(--ink-3);cursor:pointer;display:inline-flex;padding:3px;border-radius:6px}
+  .rt-head .hi svg.lucide{width:15px;height:15px}
+  .rt-head .hi.active{color:var(--accent-2);background:#efeafd}
+  .rt-groupbar{display:flex;align-items:center;gap:9px;margin:10px 0 6px;padding:9px 12px;border:1.5px dashed #c3b9ee;border-radius:10px;background:#faf9ff;font-size:12.5px;color:var(--ink)}
+  .rt-groupbar .gx{cursor:pointer;color:var(--ink-3);display:inline-flex}
+  .rt-groupbar .gic{color:var(--accent-2);display:inline-flex}
+  .rt-groupbar .gtxt{font-weight:600}
+  .rt-groupbar svg.lucide{width:16px;height:16px}
+  .rt-groupbar .gbtn{background:var(--accent-2);color:#fff;border:0;padding:8px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
+  .rt-groupbar .gbtn:disabled{background:#cfc8ea;cursor:not-allowed}
+  .selbox{width:15px;height:15px;accent-color:var(--accent-2);cursor:pointer;flex:none;margin-right:2px}
+  .rt-row.picked{background:#f6f4ff}
+  .rt-rec{border:1px solid var(--line-2);border-radius:10px;background:#fcfbff;margin:8px 0;overflow:hidden}
+  .rt-rec-h{display:flex;align-items:center;gap:8px;padding:8px 11px;background:#f4f2fb;border-bottom:1px solid var(--line-2)}
+  .rt-rec-h .ric{width:22px;height:22px;border-radius:6px;background:#e7e1fb;color:var(--accent-2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .rt-rec-h .ric svg.lucide{width:13px;height:13px}
+  .rt-rec-t{font-weight:700;font-size:12.5px}
+  .rt-rec-m{font-size:11px;color:var(--ink-3)}
+  .rt-rec .chip.blue{background:#e8effb;color:#2f5bb7}
+  .rt-rec .ract{background:none;border:1px solid var(--line-2);color:var(--ink-2);font-size:11px;padding:4px 9px;border-radius:7px;cursor:pointer}
+  .rt-rec .rt-row:first-of-type{border-top:0}
+  .rt-row{display:flex;flex-direction:column;gap:5px;padding:11px 13px;border-top:1px solid var(--line);cursor:pointer}
+  .rt-row:hover{background:#fbfaf9}
+  .rt-row.active{background:#f4f2fd}
+  .rt-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .rt-lbl{font-size:11px;color:var(--ink-2);font-weight:700}
+  .rt-row .acts{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--ink-3)}
+  .rt-row .acts .ai{cursor:pointer;display:inline-flex}
+  .rt-row .acts .ai svg.lucide{width:15px;height:15px}
+  .rt-row .val{font-size:13px}
+  .rt-row .val.mono{font-family:var(--mono);font-size:11.5px;word-break:break-all}
+  .rt-row .val.err{color:var(--bad-fg)}
+  .rt-cf{border:1px solid var(--accent-2);color:var(--accent);background:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:7px;cursor:pointer}
+  .rt-err{font-size:11px;color:var(--bad-fg)}
+  /* edit modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(14,13,13,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal{background:#fff;border-radius:16px;padding:24px 26px;width:470px;max-width:94vw;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .modal .mh{display:flex;justify-content:space-between;align-items:flex-start}
+  .modal .mh h3{margin:0;font-size:19px;font-weight:700}
+  .modal .mh .msub{font-size:12px;color:var(--ink-3);margin-top:3px}
+  .modal .mx{cursor:pointer;color:var(--ink-3);display:inline-flex}
+  .modal hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  .mfield{margin-bottom:14px}
+  .mfield label{display:block;font-size:11px;color:var(--ink-2);font-weight:700;margin-bottom:6px}
+  .mfield input,.mfield select{width:100%;padding:11px 12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px;font-family:inherit}
+  .mfield input{font-family:var(--mono)}
+  .mfield input:focus,.mfield select:focus{outline:none;border-color:var(--accent-2)}
+  .mhint{font-size:11.5px;margin-top:6px}
+  .mhint.ok{color:var(--ok-fg)}
+  .mhint.err{color:var(--bad-fg)}
+  .minfo{display:flex;gap:9px;align-items:center;background:#f8f7f4;border-radius:10px;padding:10px 12px;font-size:11.5px;color:var(--ink-2)}
+  .minfo svg.lucide{flex:none;color:var(--ink-3);width:15px;height:15px}
+  .mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .hidden{display:none!important}
+  .procbar{display:flex;align-items:center;gap:10px;max-width:900px;margin:0 auto 16px;background:#f4f2fd;border:1px solid #d9d2f5;border-radius:10px;padding:9px 14px;font-size:12.5px;color:var(--accent);font-weight:600}
+  .procbar .sp{width:16px;height:16px;border:2px solid #cfc7ef;border-top-color:var(--accent-2);border-radius:50%;animation:spin .8s linear infinite;flex:none}
+  .procbar.done{background:#e6f4ea;border-color:#bfe3cc;color:#137a3e}
+  .procbar .skip{margin-left:auto;color:var(--accent);cursor:pointer;font-weight:700}
+  .procbar.done .skip{display:none}
+  .tload{display:flex;flex-direction:column;align-items:center;gap:12px;padding:44px 0;color:var(--ink-2);font-size:13px}
+  .tload .sp{width:30px;height:30px;border:3px solid #e3def5;border-top-color:var(--accent-2);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .proc .procrow{display:flex;align-items:center;gap:14px;padding:16px 4px;border-bottom:1px solid var(--line);font-size:15px}
+  .proc .procrow.wait{opacity:.5}
+  .proc .ic{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:#efedf9;color:#8a86a8}
+  .proc .procrow.run .ic{background:var(--accent-2);color:#fff}
+  .proc .procrow.done .ic{background:var(--ok-bg);color:var(--ok-fg)}
+  .proc .ic svg.lucide{width:16px;height:16px}
+  .spin{animation:spin 1s linear infinite}
+  .loading-card{padding:42px 42px 30px;text-align:center;min-height:474px;display:flex;flex-direction:column;align-items:center}
+  .scan-wrap{position:relative;width:82px;height:104px;margin:4px auto 22px}
+  .scan-doc{position:absolute;inset:0;background:#fff;border:1px solid #d9d6cf;border-radius:12px;box-shadow:0 10px 28px rgba(33,28,24,.08);overflow:hidden}
+  .scan-doc:before{content:"";position:absolute;right:-1px;top:-1px;width:23px;height:23px;background:linear-gradient(225deg,#f6f6f4 49%,#d9d6cf 50%,#fff 53%);border-top-right-radius:11px}
+  .scan-lines{position:absolute;left:15px;right:15px;top:24px;display:flex;flex-direction:column;gap:7px}
+  .scan-lines i{display:block;height:4px;border-radius:99px;background:#e5e2dc}
+  .scan-lines i:nth-child(2){width:78%}.scan-lines i:nth-child(3){width:88%}.scan-lines i:nth-child(4){width:65%}.scan-lines i:nth-child(5){width:82%}.scan-lines i:nth-child(6){width:54%}
+  .scan-beam{position:absolute;left:5px;right:5px;height:24px;top:7px;background:linear-gradient(to bottom,rgba(124,58,237,0),rgba(124,58,237,.13) 55%,rgba(124,58,237,.56) 58%,rgba(124,58,237,0));animation:scanDoc 2.3s ease-in-out infinite}
+  .scan-spark{position:absolute;right:-6px;bottom:6px;width:27px;height:27px;border-radius:50%;background:var(--accent-2);color:#fff;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 5px 15px rgba(109,40,217,.28)}
+  .scan-spark svg.lucide{width:13px;height:13px}
+  @keyframes scanDoc{0%{transform:translateY(0);opacity:.35}45%{opacity:1}75%{transform:translateY(64px);opacity:1}100%{transform:translateY(64px);opacity:.25}}
+  .loading-title{font-size:23px;line-height:1.25;font-weight:750;margin:0 0 9px}
+  .loading-copy{font-size:13.5px;line-height:1.55;color:var(--ink-2);max-width:390px;min-height:43px;margin:0 auto 20px}
+  .indeterminate{width:280px;max-width:82%;height:4px;background:#e8e4f5;border-radius:99px;overflow:hidden;margin-bottom:22px}
+  .indeterminate span{display:block;width:42%;height:100%;border-radius:99px;background:var(--accent-2);animation:indeterminate 1.55s ease-in-out infinite}
+  @keyframes indeterminate{0%{transform:translateX(-120%)}55%{transform:translateX(110%)}100%{transform:translateX(245%)}}
+  .loading-file{width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#faf9f7;text-align:left}
+  .loading-file .fileic{width:34px;height:34px;border-radius:8px;background:#ece8fa;color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+  .loading-file .fileic svg.lucide{width:17px;height:17px}
+  .loading-file .filename{font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .loading-file .filemeta{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+  .loading-file .live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--accent);font-weight:700;white-space:nowrap}
+  .loading-file .dot{width:6px;height:6px;border-radius:50%;background:var(--accent-2);animation:pulseDot 1.2s ease-in-out infinite}
+  @keyframes pulseDot{50%{opacity:.3;transform:scale(.75)}}
+  .loading-foot{height:42px;display:flex;align-items:flex-end;justify-content:center;margin-top:9px}
+  .loading-note{font-size:11px;color:var(--ink-3)}
+  .loading-cancel{border:0;background:transparent;color:var(--ink-2);font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .success-flash{position:fixed;top:82px;left:50%;transform:translate(-50%,-8px);z-index:40;display:flex;align-items:center;gap:8px;padding:10px 14px;background:#173d2a;color:#fff;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:12.5px;font-weight:650;opacity:0;pointer-events:none;transition:.24s ease}
+  .success-flash.show{opacity:1;transform:translate(-50%,0)}
+  .success-flash svg.lucide{width:16px;height:16px}
+  .sub{font-size:12.5px;color:var(--ink-3)}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#131111;color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
   .toast.show{opacity:1}
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- NAV -->
   <nav class="nav">
-    <div class="brandrow"><div class="collapse" title="Collapse">«</div></div>
-    <a><span class="ico">◍</span> Profile</a>
-    <a><span class="ico">◔</span> Notifications</a>
+    <div class="brandrow"><div class="collapse"><i data-lucide="chevrons-left"></i></div></div>
+    <a><i data-lucide="user"></i> Profile</a>
+    <a><i data-lucide="bell"></i> Notifications</a>
     <div class="sec">
-      <a class="active" id="nav-new"><span class="ico">▤</span> New Request</a>
-      <a id="nav-req"><span class="ico">▦</span> Requests</a>
-      <a><span class="ico">▭</span> Cases</a>
+      <a class="active" id="nav-new"><i data-lucide="file-plus"></i> New Request</a>
+      <a id="nav-req"><i data-lucide="inbox"></i> Requests</a>
+      <a><i data-lucide="folder"></i> Cases</a>
     </div>
     <div class="spacer"></div>
-    <a><span class="ico">◍</span> Help / Info</a>
-    <a><span class="ico">→</span> Sign Out</a>
+    <a><i data-lucide="circle-help"></i> Help / Info</a>
+    <a><i data-lucide="log-out"></i> Sign Out</a>
   </nav>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:16px">
@@ -171,29 +301,50 @@
     </div>
 
     <div class="content">
-      <!-- ============ AGENT WIZARD ============ -->
+      <!-- AGENT WIZARD -->
       <div id="agentView" class="wrap">
         <h1 class="page">New Records Request</h1>
         <div class="steps" id="stepper"></div>
 
-        <!-- step 1 upload -->
         <section class="panel step" data-step="1">
           <div class="phead"><div class="num">1</div><h2>Upload your legal process document</h2></div>
           <p class="muted small" style="margin-top:-8px">Upload the subpoena, court order, or warrant that contains the target information first. You can add other supporting documents too.</p>
-          <div class="drop"><div class="disc">🗎</div><div style="font-weight:600;color:var(--ink)">Drag and drop files here</div><div style="margin:8px 0">OR</div><button class="btn primary" onclick="addFile()">BROWSE</button></div>
+          <div class="drop"><div class="disc"><i data-lucide="file-text"></i></div><div style="font-weight:600;color:var(--ink)">Drag and drop files here</div><div style="margin:8px 0">OR</div><button class="btn primary" onclick="addFile()">BROWSE</button></div>
           <div class="hint">Accepted: PDF and Word (.docx) only · Max 5 files · Uploaded documents are processed to auto-extract targets.</div>
           <div id="fileList"></div>
-          <div class="btnrow"><button class="btn ghost" disabled>PREVIOUS</button><button class="btn primary" onclick="go(2)">NEXT</button></div>
+          <div class="btnrow"><button class="btn ghost" disabled>PREVIOUS</button><button class="btn primary" onclick="startProcessing()">ANALYZE &amp; CONTINUE</button></div>
         </section>
 
-        <!-- step 2 details -->
+        <!-- PROCESSING -->
+        <section class="panel hidden loading-card" id="processing" style="max-width:640px">
+          <div class="scan-wrap" aria-hidden="true">
+            <div class="scan-doc">
+              <div class="scan-lines"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="scan-beam"></div>
+            </div>
+            <div class="scan-spark"><i data-lucide="sparkles"></i></div>
+          </div>
+          <h2 class="loading-title">Reading your document</h2>
+          <p class="loading-copy" id="loadingCopy">Extracting request details and identifying targets.</p>
+          <div class="indeterminate" aria-label="Processing"><span></span></div>
+          <div class="loading-file">
+            <div class="fileic"><i data-lucide="file-text"></i></div>
+            <div style="min-width:0">
+              <div class="filename">tron_20250902_civil_complaint.pdf</div>
+              <div class="filemeta">27 pages · 910.58 KB</div>
+            </div>
+            <div class="live"><span class="dot"></span><span id="loadingStatus">Analyzing</span></div>
+          </div>
+          <div class="loading-foot" id="loadingFoot"><span class="loading-note">Most documents finish in a few seconds.</span></div>
+        </section>
+
         <section class="panel step hidden" data-step="2">
           <div class="phead"><div class="num">2</div><h2>Request Details</h2></div>
           <div class="small muted" style="letter-spacing:.5px;margin-bottom:14px">LEGAL</div>
           <div class="grid2">
-            <div class="field"><label>Agency Case Number</label><input value="323123"></div>
-            <div class="field"><label>Case Nature</label><select><option>Credit Card Fraud or Theft</option><option>Money Laundering</option></select></div>
-            <div class="field"><label>Legal Process</label><select><option>Search Warrant</option><option>Subpoena</option><option>Court Order</option></select></div>
+            <div class="field"><label>Agency Case Number</label><input placeholder="Enter agency case number"></div>
+            <div class="field"><label>Case Nature</label><select><option value="" selected disabled>Select case nature…</option><option>Credit Card Fraud or Theft</option><option>Money Laundering</option></select></div>
+            <div class="field"><label>Legal Process</label><select><option value="" selected disabled>Select legal process…</option><option>Search Warrant</option><option>Subpoena</option><option>Court Order</option></select></div>
             <div class="field"><label>Legal Doc Signature Date</label><input value="Jul 6, 2026"></div>
             <div class="field"><label>Records Start Date</label><input value="Jul 1, 2026"><div class="hint">Optional — defaults to the user's account creation date.</div></div>
             <div class="field"><label>Records End Date</label><input value="Jul 6, 2026"></div>
@@ -202,22 +353,16 @@
           <div class="btnrow"><button class="btn" onclick="go(1)">CANCEL</button><button class="btn primary" onclick="go(3)">NEXT</button></div>
         </section>
 
-        <!-- step 3 SPLIT REVIEW -->
         <section class="panel wide step hidden" data-step="3">
-          <div class="phead"><div class="num">3</div><h2>Review &amp; Confirm Extracted Targets</h2></div>
+          <div class="phead"><div class="num">3</div><h2>Review &amp; Confirm Extracted Targets</h2><button class="doctoggle" id="docToggle" onclick="toggleDoc()"><i data-lucide="panel-right-close"></i> Hide document</button></div>
           <p class="muted small" style="margin-top:-8px">Select any identifier on the left to see exactly where it appears in the source document. Edit inline, assign a role, then confirm.</p>
-
           <div id="agentBanners"></div>
-
-          <div class="split">
-            <!-- target pane -->
+          <div class="split" id="agentSplit">
             <div class="tpane" id="tpaneAgent"></div>
-
-            <!-- doc pane -->
-            <div class="doc">
+            <div class="doc" id="agentDoc">
               <div class="dbar">
-                <span>🗎 tron_20250902_civil_complaint.pdf</span>
-                <span class="zoom"><span onclick="pageMsg('page 3 / 27')">‹</span> page 4 / 27 <span onclick="pageMsg('page 5 / 27')">›</span></span>
+                <span class="fn"><i data-lucide="file-text"></i> tron_20250902_civil_complaint.pdf</span>
+                <span class="dbar-r"><span class="zoom"><span onclick="pageMsg('page 3 / 27')"><i data-lucide="chevron-left"></i></span> page 4 / 27 <span onclick="pageMsg('page 5 / 27')"><i data-lucide="chevron-right"></i></span></span><span class="dcollapse" onclick="toggleDoc()" title="Hide document"><i data-lucide="chevrons-right"></i></span></span>
               </div>
               <div class="page" id="docPage">
                 <div class="ct">UNITED STATES DISTRICT COURT</div>
@@ -238,14 +383,12 @@
                   <mark class="ok mono" data-h="s-wallet2">bc1qvulygn35l3c7uspcj9lvacrzhk6gmccgppar3x</mark>.</p>
                 <p style="color:var(--ink-3);font-size:11px;margin-top:18px">Footnote 1: USDT is a type of virtual currency called a "stablecoin" whose price is pegged to a commodity such as the U.S. dollar…</p>
               </div>
-              <div class="foot" id="docFoot"><span>↳ Select an identifier to locate it in the document.</span></div>
+              <div class="foot" id="docFoot"><span>Select an identifier to locate it in the document.</span></div>
             </div>
           </div>
-
           <div class="btnrow"><button class="btn" onclick="go(2)">PREVIOUS</button><button class="btn primary" id="nextTargets" disabled onclick="go(4)">NEXT</button></div>
         </section>
 
-        <!-- step 4 ndo -->
         <section class="panel step hidden" data-step="4">
           <div class="phead"><div class="num">4</div><h2>Non-Disclosure Order</h2></div>
           <p style="font-size:14px">Do you have an NDO?</p>
@@ -256,14 +399,12 @@
           <div class="btnrow"><button class="btn" onclick="go(3)">PREVIOUS</button><button class="btn primary" onclick="go(5)">NEXT</button></div>
         </section>
 
-        <!-- step 5 addl -->
         <section class="panel step hidden" data-step="5">
           <div class="phead"><div class="num">5</div><h2>Additional Information</h2></div>
           <div class="field"><label>Additional Information</label><textarea style="width:100%;min-height:150px;padding:12px;border:1px solid var(--line-2);border-radius:9px;font-size:14px">This is a more complex fraud request that includes a number of transactions and wallet addresses across two suspects.</textarea></div>
           <div class="btnrow"><button class="btn" onclick="go(4)">PREVIOUS</button><button class="btn primary" onclick="go(6)">NEXT</button></div>
         </section>
 
-        <!-- step 6 summary -->
         <section class="panel wide step hidden" data-step="6">
           <div class="phead"><div class="num">6</div><h2>Summary</h2></div>
           <div class="sumsec" style="border-top:0;padding-top:0;margin-top:0">
@@ -284,12 +425,11 @@
           <div class="btnrow"><button class="btn" onclick="go(5)">PREVIOUS</button><button class="btn primary" onclick="go(7)">SUBMIT</button></div>
         </section>
 
-        <!-- step 7 submitted -->
         <section class="panel step hidden" data-step="7">
           <div class="center">
             <h1 style="font-size:30px;margin:0">Request Submitted!</h1>
             <p class="muted">Request (KDP-12) has successfully been submitted.</p>
-            <div class="big">✓</div>
+            <div class="big"><i data-lucide="check"></i></div>
             <div style="font-weight:700;margin-bottom:16px">What next?</div>
             <button class="btn" onclick="go(1)">BACK TO HOME</button>
             <button class="btn primary" onclick="setPersona('analyst')">VIEW AS ANALYST →</button>
@@ -297,7 +437,7 @@
         </section>
       </div>
 
-      <!-- ============ ANALYST REVIEW ============ -->
+      <!-- ANALYST REVIEW -->
       <div id="analystView" class="wrap hidden">
         <h1 class="page">Incoming Request · KDP-12</h1>
         <div class="panel wide">
@@ -309,13 +449,11 @@
             </div>
           </div>
           <p class="muted small" style="margin-top:-8px">Validate the submitter's selectors against the attachment they uploaded. Highlights show exactly what was found in the document text; provenance shows what the agent changed.</p>
-
-          <div class="banner warn"><span>⚠</span><span><b>2 selectors need your attention:</b> 1 was modified by the submitter and 1 could not be located in the document text.</span></div>
-
+          <div class="banner warn"><i data-lucide="triangle-alert"></i><span><b>2 selectors need your attention:</b> 1 was modified by the submitter and 1 could not be located in the document text.</span></div>
           <div class="split">
             <div class="tpane" id="tpaneAnalyst"></div>
             <div class="doc">
-              <div class="dbar"><span>🗎 tron_20250902_civil_complaint.pdf</span><span class="zoom">page 4 / 27</span></div>
+              <div class="dbar"><span class="fn"><i data-lucide="file-text"></i> tron_20250902_civil_complaint.pdf</span><span class="zoom">page 4 / 27</span></div>
               <div class="page" id="docPageA">
                 <div class="ct">UNITED STATES DISTRICT COURT</div>
                 <div class="cs">VERIFIED COMPLAINT FOR FORFEITURE IN REM · Case 25-cv-2967</div>
@@ -333,10 +471,9 @@
                   controlled wallet
                   <mark class="ok mono" data-h="a-wallet2">bc1qvulygn35l3c7uspcj9lvacrzhk6gmccgppar3x</mark>.</p>
               </div>
-              <div class="foot" id="docFootA"><span>↳ Select a selector to locate it in the attachment.</span></div>
+              <div class="foot" id="docFootA"><span>Select a selector to locate it in the attachment.</span></div>
             </div>
           </div>
-
           <div class="btnrow">
             <button class="btn" onclick="bulkAccept()">Accept all matched in document</button>
             <button class="btn primary" onclick="analystDone()">Complete review</button>
@@ -347,10 +484,14 @@
     </div>
   </div>
 </div>
+<div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
+<div class="success-flash" id="successFlash"><i data-lucide="circle-check"></i> Document analyzed successfully</div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-/* ---------- data ---------- */
+function icons(){ if(window.lucide) window.lucide.createIcons(); }
+
 var targets = [
   { id:1, role:"", selectors:[
     {id:"email", type:"Email Address", val:"lingxingyu999@gmail.com", prov:"ext", ver:"ok", h:"s-email"},
@@ -368,106 +509,166 @@ var targets = [
   ]}
 ];
 var roles = ["No role assigned","Primary Subject","Secondary Subject","Victim","Witness"];
+var collapsed={};
+function toggleCollapse(tid){collapsed[tid]=!collapsed[tid];renderAgentTargets();}
+var groupMeta={},gCount=0,groupModeTid=null,groupSel={};
+function toggleGroupMode(tid){groupModeTid=(groupModeTid===tid)?null:tid;groupSel={};renderAgentTargets();}
+function exitGroupMode(){groupModeTid=null;groupSel={};renderAgentTargets();}
+function toggleSelBox(tid,sid,on){groupSel[sid]=on;renderAgentTargets();}
+function groupSelectedIntoRecord(tid){
+  var t=targets.find(function(x){return x.id===tid;});
+  var sel=t.selectors.filter(function(s){return groupSel[s.id];});
+  if(sel.length<2){toast('Select at least 2 selectors to group');return;}
+  var gid='g'+(++gCount);var n=Object.keys(groupMeta).length+1;
+  groupMeta[gid]={label:'Transaction '+n};
+  sel.forEach(function(s){s.group=gid;});
+  groupModeTid=null;groupSel={};toast('Grouped '+sel.length+' selectors into '+groupMeta[gid].label);renderAgentTargets();
+}
+function ungroupGroup(tid,gid){var t=targets.find(function(x){return x.id===tid;});t.selectors.forEach(function(s){if(s.group===gid)delete s.group;});delete groupMeta[gid];toast('Group separated');renderAgentTargets();}
+function renderGroup(t,gid){
+  var meta=groupMeta[gid]||{label:'Group'};
+  var rows=t.selectors.filter(function(s){return s.group===gid;}).map(function(s){return rtRow(t,s,false,true);}).join('');
+  return '<div class="rt-rec"><div class="rt-rec-h"><span class="ric"><i data-lucide="link-2"></i></span><div><div class="rt-rec-t">'+meta.label+'</div><div class="rt-rec-m">Grouped selectors — reviewed together</div></div><span style="flex:1"></span><span class="chip blue">Related selectors</span><button class="ract" onclick="event.stopPropagation();ungroupGroup('+t.id+',\''+gid+'\')">Separate</button></div>'+rows+'</div>';
+}
 var provLabel = {ext:["AI-extracted","c-ext"], mod:["Agent-modified","c-mod"], add:["Agent-added","c-add"]};
-var verLabel = {ok:["Verified in document","c-ok"], rev:["Needs review","c-rev"], bad:["Not found in text","c-bad"]};
+var SELTYPES=["Email Address","Phone Number","Geolocation","Location of Residence","Wallet Address","Transaction Amount","Transaction Date","Transaction Hash"];
 
-/* ---------- stepper ---------- */
 var current=1;
 function buildStepper(){var h="";for(var i=1;i<=6;i++){h+='<div class="s" data-si="'+i+'"></div>';}document.getElementById('stepper').innerHTML=h;}
 function paintStepper(){document.querySelectorAll('#stepper .s').forEach(function(el){var i=+el.dataset.si;el.className='s'+(i<current?' done':'')+(i===current?' on':'');});}
-function go(n){
-  current=n;
-  document.querySelectorAll('#agentView .step').forEach(function(s){s.classList.toggle('hidden', +s.dataset.step!==n);});
-  document.getElementById('stepper').style.visibility = (n>=1&&n<=6)?'visible':'hidden';
-  paintStepper();
-  if(n===3) renderAgentTargets();
-  if(n===6) renderSummary();
-  window.scrollTo({top:0,behavior:'smooth'});
+function go(n){current=n;var pr=document.getElementById('processing');if(pr)pr.classList.add('hidden');document.querySelectorAll('#agentView .step').forEach(function(s){s.classList.toggle('hidden', +s.dataset.step!==n);});document.getElementById('stepper').style.visibility=(n>=1&&n<=6)?'visible':'hidden';paintStepper();if(n===3){renderAgentTargets();applyDoc();}if(n===6)renderSummary();icons();window.scrollTo({top:0,behavior:'smooth'});}
+var processingTimers=[];
+function clearProcessingTimers(){processingTimers.forEach(function(t){clearTimeout(t)});processingTimers=[];}
+function setLoadingMessage(copy,status,foot){
+  var c=document.getElementById('loadingCopy'),s=document.getElementById('loadingStatus'),f=document.getElementById('loadingFoot');
+  if(c)c.textContent=copy;if(s)s.textContent=status;if(f)f.innerHTML=foot;
 }
-
-/* ---------- upload ---------- */
-function addFile(){
-  document.getElementById('fileList').innerHTML =
-   '<div class="filerow"><div class="fi">🗎</div><div><div style="font-weight:600;font-size:13px">tron_20250902_civil_complaint.pdf</div><div class="small muted">910.58 KB · application/pdf</div></div><div style="margin-left:auto;color:var(--bad-fg);cursor:pointer" onclick="document.getElementById(\'fileList\').innerHTML=\'\'">🗑</div></div>';
-  toast('Document added — will be processed for extraction');
+function showProcessed(){
+  clearProcessingTimers();
+  go(2);
+  var flash=document.getElementById('successFlash');
+  flash.classList.add('show');icons();
+  processingTimers.push(setTimeout(function(){flash.classList.remove('show');},2200));
 }
+function startProcessing(mode){
+  mode=mode||'short';clearProcessingTimers();
+  document.querySelectorAll('#agentView .step').forEach(function(s){s.classList.add('hidden');});
+  document.getElementById('processing').classList.remove('hidden');
+  document.getElementById('stepper').style.visibility='visible';
+  setLoadingMessage('Extracting request details and identifying targets.','Analyzing','<span class="loading-note">Most documents finish in a few seconds.</span>');
+  icons();window.scrollTo({top:0,behavior:'smooth'});
+  if(mode==='instant'){processingTimers.push(setTimeout(showProcessed,180));return;}
+  var duration=mode==='long'?26000:4200;
+  processingTimers.push(setTimeout(function(){
+    setLoadingMessage('Still working — documents with more pages or complex formatting can take a little longer.','Still analyzing','<span class="loading-note">You can keep this page open while processing finishes.</span>');
+  },6000));
+  processingTimers.push(setTimeout(function(){
+    setLoadingMessage('This document is taking longer than usual, but processing is still active.','Processing','<button class="loading-cancel" onclick="cancelProcessing()">Cancel processing</button>');
+  },15000));
+  processingTimers.push(setTimeout(showProcessed,duration));
+}
+function cancelProcessing(){clearProcessingTimers();go(1);toast('Processing canceled');}
 
-/* ---------- agent targets ---------- */
+function addFile(){document.getElementById('fileList').innerHTML='<div class="filerow"><div class="fi"><i data-lucide="file-text"></i></div><div><div style="font-weight:600;font-size:13px">tron_20250902_civil_complaint.pdf</div><div class="small muted">910.58 KB · application/pdf</div></div><div style="margin-left:auto;color:var(--bad-fg);cursor:pointer" onclick="document.getElementById(\'fileList\').innerHTML=\'\'"><i data-lucide="trash-2"></i></div></div>';icons();toast('Document added — will be processed for extraction');}
+
 function chip(t){return '<span class="chip '+t[1]+'">'+t[0]+'</span>';}
-function selMarkup(t,s){
-  var chips = chip(provLabel[s.prov]);
+function findSel(tid,sid){var t=targets.find(function(x){return x.id===tid;});return {t:t, s:t.selectors.find(function(x){return x.id===sid;})};}
+function rtRow(t,s,selMode,inRec){
+  var chips='<span class="chip ext">Extracted</span>'+(s.ver==='rev'?'<span class="chip c-rev">Review</span>':'')+(s.prov==='add'?'<span class="chip c-add">Added manually</span>':'');
+  var cb=(selMode&&!inRec)?'<input type="checkbox" class="selbox" onclick="event.stopPropagation();toggleSelBox('+t.id+',\''+s.id+'\',this.checked)"'+(groupSel[s.id]?' checked':'')+'>':'';
+  var confirm=(s.ver==='rev')?'<span class="rt-cf" onclick="event.stopPropagation();confirmRev('+t.id+',\''+s.id+'\')">Confirm</span>':'';
+  var acts='<span class="acts">'+confirm+
+    '<span class="ai" title="Change type" onclick="event.stopPropagation();toast(\'Change type — demo\')"><i data-lucide="arrow-left-right"></i></span>'+
+    '<span class="ai" title="Copy" onclick="event.stopPropagation();toast(\'Copied\')"><i data-lucide="copy"></i></span>'+
+    '<span class="ai" title="Edit" onclick="event.stopPropagation();openEditModal('+t.id+',\''+s.id+'\')"><i data-lucide="square-pen"></i></span>'+
+    '<span class="ai" title="Delete" onclick="event.stopPropagation();delSel('+t.id+',\''+s.id+'\')"><i data-lucide="trash-2"></i></span></span>';
   var val = s.val? '<div class="val'+(s.mono?' mono':'')+(s.err?' err':'')+'">'+s.val+'</div>'
                  : '<div class="val" style="color:var(--ink-3)">'+ (s.placeholder||'') +'</div>';
+  var err = s.err? '<div class="rt-err">'+s.err+'</div>':'';
+  var nf = (s.ver==='bad'&&s.val)? '<div class="rt-err">Not found in the document — verify manually.</div>':'';
+  var opt = (s.ver==='bad'&&!s.val)? '<div class="small muted" style="margin-top:2px">Optional — not present in the document.</div>':'';
   var sugg = (s.err&&s.fix)? '<div class="sugg">'+(s.fix.note?'Split off unit “'+s.fix.note+'”':'Suggested: '+s.fix.val)+' <button class="btn tiny" onclick="event.stopPropagation();acceptFix('+t.id+',\''+s.id+'\')">Accept</button></div>':'';
-  var errline = s.err? '<div class="small" style="color:var(--bad-fg);margin-top:3px">'+s.err+'</div>':'';
-  var nf = (s.ver==='bad'&&s.val)? '<div class="small" style="color:var(--bad-fg);margin-top:3px">⚠ Not found in the document — verify manually.</div>':'';
-  var opt = (s.ver==='bad'&&!s.val)? '<div class="small muted" style="margin-top:3px">Optional — not present in the document.</div>':'';
-  return '<div class="sel" data-sid="'+s.id+'" data-h="'+(s.h||'')+'" onclick="pick(\''+s.id+'\',\''+(s.h||'')+'\')">'+
-    '<div class="r1"><span class="lbl">'+s.type+'</span>'+chips+'<span class="acts"><i title="edit">✎</i><i title="copy">⧉</i><i title="delete">🗑</i></span></div>'+
-    val+errline+nf+opt+sugg+'</div>';
+  return '<div class="rt-row'+(groupSel[s.id]&&selMode&&!inRec?' picked':'')+'" data-sid="'+s.id+'" data-h="'+(s.h||'')+'" onclick="pick(\''+s.id+'\',\''+(s.h||'')+'\')">'+
+    '<div class="rt-top">'+cb+'<span class="rt-lbl">'+s.type+'</span>'+chips+acts+'</div>'+val+err+nf+opt+sugg+'</div>';
 }
+function counts2(){var tt=targets.length,ss=0,nr=0,ed=0,noRole=0;targets.forEach(function(t){if(!t.role||t.role==='No role assigned')noRole++;t.selectors.forEach(function(s){ss++;if(s.ver==='rev')nr++;if(s.err)ed++;});});return{tt:tt,ss:ss,nr:nr,ed:ed,noRole:noRole};}
 function renderAgentTargets(){
-  var m = countMetrics();
-  var h='<div class="metrics">'+
-    '<div class="metric"><b>'+m.tt+'</b><span>targets</span></div>'+
-    '<div class="metric"><b>'+m.ss+'</b><span>selectors</span></div>'+
-    '<div class="metric"><b style="color:var(--warn-fg)">'+m.rev+'</b><span>needs review</span></div></div>';
+  var c=counts2();
+  var b='';
+  if(c.nr>0)b+='<div class="banner warn"><i data-lucide="triangle-alert"></i><span>'+c.nr+' selector(s) must be reviewed and confirmed before proceeding.</span></div>';
+  if(c.ed>0||c.noRole>0){var parts=[];if(c.ed>0)parts.push(c.ed+' selector(s) have invalid values');if(c.noRole>0)parts.push(c.noRole+' target(s) still need a role assigned');b+='<div class="banner bad"><i data-lucide="circle-alert"></i><span>Before proceeding: '+parts.join(', and ')+'.</span></div>';}
+  document.getElementById('agentBanners').innerHTML=b;
+  var h='<div class="rt-found"><div class="rt-fh"><span style="color:var(--ok-fg);display:inline-flex"><i data-lucide="circle-check"></i></span> Found in Documents: '+c.tt+' target(s) · '+c.ss+' selector(s) <span style="margin-left:auto;color:var(--ink-3);display:inline-flex"><i data-lucide="chevron-up"></i></span></div>'+
+    '<div class="rt-mrow"><div class="rt-mbox"><b>'+c.tt+'</b><span>Targets</span></div><div class="rt-mbox"><b>'+c.ss+'</b><span>Selectors</span></div><div class="rt-mbox rev"><b>'+c.nr+'</b><span>Needs Review</span></div><div class="rt-mbox edit"><b>'+c.ed+'</b><span>Edits Needed</span></div></div>'+
+    '<div class="rt-docs">DOCUMENTS</div><div class="rt-docrow"><i data-lucide="file-text" style="width:16px;height:16px;color:var(--ink-3)"></i> tron_20250902_civil_complaint_25-cv-2967.pdf <span class="rt-proc">Processed</span></div></div>';
+  h+='<div class="rt-instr">Edit incorrect values, assign a role to each target, delete incorrect entries, and add any missing targets or selectors. Check the attestation box when complete.</div>';
+  h+='<div class="rt-add" onclick="toast(\'Add target — demo\')"><i data-lucide="plus"></i> Add Target</div>';
   targets.forEach(function(t){
     var rev=t.selectors.filter(function(s){return s.ver==='rev';}).length;
-    h+='<div class="tgroup"><div class="tgh"><span class="av">👤</span><b>Target '+t.id+'</b> <span class="small muted">'+t.selectors.length+' selectors</span>'+
-       (rev?' <span class="chip c-rev">'+rev+' needs review</span>':'')+
-       '<span class="role"><select onchange="setRole('+t.id+',this.value)">'+roles.map(function(r){return '<option'+(r===(t.role||"No role assigned")?' selected':'')+'>'+r+'</option>';}).join('')+'</select></span></div>';
-    t.selectors.forEach(function(s){h+=selMarkup(t,s);});
+    var norole=(!t.role||t.role==='No role assigned');
+    h+='<div class="rt-group"><div class="rt-head"><span class="av"><i data-lucide="user"></i></span><span class="tname">Target '+t.id+'</span><span class="cnt">'+t.selectors.length+' selectors</span>'+(rev?' <span class="chip c-rev">'+rev+' needs review</span>':'')+'<span class="sp"></span>'+
+       '<select class="rolesel'+(norole?' norole':'')+'" onchange="setRole('+t.id+',this.value)">'+roles.map(function(r){return '<option'+(r===(t.role||"No role assigned")?' selected':'')+'>'+r+'</option>';}).join('')+'</select>'+
+       '<span class="hi" title="Add selector"><i data-lucide="plus"></i></span><span class="hi'+(groupModeTid===t.id?' active':'')+'" title="Group selectors" onclick="toggleGroupMode('+t.id+')"><i data-lucide="group"></i></span><span class="hi" title="Delete target"><i data-lucide="trash-2"></i></span><span class="hi" title="'+(collapsed[t.id]?'Expand':'Collapse')+'" onclick="toggleCollapse('+t.id+')"><i data-lucide="'+(collapsed[t.id]?'chevron-down':'chevron-up')+'"></i></span></div>';
+    if(!collapsed[t.id]){
+      if(groupModeTid===t.id){var gn=t.selectors.filter(function(s){return groupSel[s.id];}).length;h+='<div class="rt-groupbar"><span class="gx" title="Exit grouping" onclick="exitGroupMode()"><i data-lucide="x"></i></span><span class="gtxt">Group selectors — <b>'+gn+'</b> selected</span><span style="flex:1"></span><button class="gbtn"'+(gn<2?' disabled':'')+' onclick="groupSelectedIntoRecord('+t.id+')">Group into new record</button></div>';}
+      var rendered={};
+      t.selectors.forEach(function(s){
+        if(s.group){if(rendered[s.group])return;rendered[s.group]=true;h+=renderGroup(t,s.group);return;}
+        h+=rtRow(t,s,groupModeTid===t.id,false);
+      });
+    }
     h+='</div>';
   });
-  var need = needsAttention();
-  var banners='';
-  if(need.rev) banners+='<div class="banner warn"><span>⚠</span><span>'+need.rev+' selector(s) still need review before you can proceed.</span></div>';
-  if(need.role) banners+='<div class="banner bad"><span>⛔</span><span>Every target needs a role assigned.</span></div>';
-  document.getElementById('agentBanners').innerHTML=banners;
-  h+='<div class="attest"><input type="checkbox" id="attestBox" '+(need.rev||need.role?'disabled':'')+' onchange="updateNext()"><label for="attestBox">I\'ve verified each target against the source document. AI extraction assists but does not replace the legal review my agency is required to perform.</label></div>';
-  document.getElementById('tpaneAgent').innerHTML=h;
-  updateNext();
+  var gate=(c.nr===0&&c.ed===0&&c.noRole===0);
+  h+='<div class="attest"><input type="checkbox" id="attestBox" '+(gate?'':'disabled')+' onchange="updateNext()"><label for="attestBox">I\'ve reviewed each target against the source document. AI extraction assists but does not replace the legal review my agency is required to perform.</label></div>';
+  document.getElementById('tpaneAgent').innerHTML=h;icons();updateNext();
 }
-function countMetrics(){
-  var ss=0,rev=0,bad=0;
-  targets.forEach(function(t){t.selectors.forEach(function(s){ss++;if(s.ver==='rev')rev++;if(s.ver==='bad')bad++;});});
-  return {tt:targets.length, ss:ss, rev:rev, bad:bad};
-}
-function needsAttention(){
-  var rev=0,role=0;
-  targets.forEach(function(t){ if(!t.role||t.role==='No role assigned') role++; t.selectors.forEach(function(s){if(s.ver==='rev')rev++;});});
-  return {rev:rev, role:role};
-}
-function acceptFix(tid,sid){
-  var t=targets.find(function(x){return x.id===tid;}); var s=t.selectors.find(function(x){return x.id===sid;});
-  if(s.fix.val) s.val=s.fix.val;
-  s.ver='ok'; s.prov='mod'; s.err=null; s.fix=null;
-  toast('Corrected · marked Agent-modified');
-  renderAgentTargets();
-}
+function confirmRev(tid,sid){var r=findSel(tid,sid);r.s.ver='ok';toast('Selector confirmed');renderAgentTargets();}
+function needsAttention(){var rev=0,role=0;targets.forEach(function(t){ if(!t.role||t.role==='No role assigned') role++; t.selectors.forEach(function(s){if(s.ver==='rev')rev++;});});return {rev:rev, role:role};}
+function acceptFix(tid,sid){var r=findSel(tid,sid),s=r.s;if(s.fix.val) s.val=s.fix.val;s.ver='ok'; s.prov='mod'; s.err=null; s.fix=null;toast('Corrected · marked Agent-modified');renderAgentTargets();}
 function setRole(tid,val){var t=targets.find(function(x){return x.id===tid;});t.role=val;renderAgentTargets();}
-function updateNext(){
-  var need=needsAttention();
-  var box=document.getElementById('attestBox');
-  document.getElementById('nextTargets').disabled = !(box&&box.checked&&!need.rev&&!need.role);
-}
-var lastPick=null;
+function delSel(tid,sid){var t=targets.find(function(x){return x.id===tid;});t.selectors=t.selectors.filter(function(s){return s.id!==sid;});renderAgentTargets();}
+function updateNext(){var c=counts2();var box=document.getElementById('attestBox');document.getElementById('nextTargets').disabled = !(box&&box.checked&&c.nr===0&&c.ed===0&&c.noRole===0);}
+var docHidden=false;
+function applyDoc(){var s=document.getElementById('agentSplit'),d=document.getElementById('agentDoc'),t=document.getElementById('docToggle');if(!s)return;s.classList.toggle('docoff',docHidden);d.classList.toggle('hidden',docHidden);t.innerHTML=docHidden?'<i data-lucide="panel-right-open"></i> Show document':'<i data-lucide="panel-right-close"></i> Hide document';icons();}
+function toggleDoc(){docHidden=!docHidden;applyDoc();}
+function showDoc(){if(docHidden){docHidden=false;applyDoc();}}
 function pick(sid,h){
-  document.querySelectorAll('#tpaneAgent .sel').forEach(function(el){el.classList.toggle('active',el.dataset.sid===sid);});
+  showDoc();
+  document.querySelectorAll('#tpaneAgent [data-sid]').forEach(function(el){el.classList.toggle('active',el.dataset.sid===sid);});
   document.querySelectorAll('#docPage mark').forEach(function(m){m.classList.remove('sel');});
   var foot=document.getElementById('docFoot');
-  if(h){var mk=document.querySelector('#docPage mark[data-h="'+h+'"]');
-    if(mk){mk.classList.add('sel');mk.scrollIntoView({block:'center',behavior:'smooth'});foot.innerHTML='<span>◎ Located on page 4 — highlighted above.</span>';}
-  } else { foot.innerHTML='<span style="color:var(--bad-fg)">⚠ This value was not found in the document text — verify before submitting.</span>'; }
+  if(h){var mk=document.querySelector('#docPage mark[data-h="'+h+'"]');if(mk){mk.classList.add('sel');mk.scrollIntoView({block:'center',behavior:'smooth'});foot.innerHTML='<i data-lucide="scan-search"></i><span>Located on page 4 — highlighted above.</span>';}}
+  else { foot.innerHTML='<i data-lucide="circle-alert"></i><span style="color:var(--bad-fg)">This value was not found in the document text — verify before submitting.</span>'; }
+  icons();
 }
 document.addEventListener('click',function(e){
-  var mk=e.target.closest('#docPage mark'); if(mk){var h=mk.dataset.h;var el=document.querySelector('#tpaneAgent .sel[data-h="'+h+'"]');if(el){el.click();el.scrollIntoView({block:'center',behavior:'smooth'});}}
+  var mk=e.target.closest('#docPage mark'); if(mk){var h=mk.dataset.h;var el=document.querySelector('#tpaneAgent [data-h="'+h+'"]');if(el){el.click();el.scrollIntoView({block:'center',behavior:'smooth'});}}
   var mka=e.target.closest('#docPageA mark'); if(mka){var ha=mka.dataset.h;var ela=document.querySelector('#tpaneAnalyst .sel[data-h="'+ha+'"]');if(ela){ela.click();ela.scrollIntoView({block:'center',behavior:'smooth'});}}
 });
 function pageMsg(t){toast(t);}
 
-/* ---------- summary ---------- */
+/* edit modal */
+function validate(type,val){val=(val||'').trim();if(type==='Transaction Date')return /^\d{4}-\d{2}-\d{2}$/.test(val)?null:'Must be a valid date in YYYY-MM-DD format';if(type==='Transaction Amount')return /^-?\d+(\.\d+)?$/.test(val)?null:'Must be a valid number';if(!val)return 'Value is required';return null;}
+function openEditModal(tid,sid){
+  var r=findSel(tid,sid),t=r.t,s=r.s;
+  var opts=SELTYPES.map(function(x){return '<option'+(x===s.type?' selected':'')+'>'+x+'</option>';}).join('');
+  var html='<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal">'+
+    '<div class="mh"><div><h3>Edit selector</h3><div class="msub">Target '+t.id+' · '+(t.role||'No role assigned')+'</div></div><span class="mx" onclick="closeModal()"><i data-lucide="x"></i></span></div>'+
+    '<hr>'+
+    '<div class="mfield"><label>Selector type</label><select id="mType" onchange="mValidate()">'+opts+'</select></div>'+
+    '<div class="mfield"><label>Value</label><input id="mVal" value="'+(s.val||'').replace(/"/g,'&quot;')+'" oninput="mValidate()"><div class="mhint" id="mHint"></div></div>'+
+    '<div class="minfo"><i data-lucide="info"></i> Saving marks this selector “Agent-modified” so the analyst can see it was edited.</div>'+
+    '<div class="mfoot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" id="mSave" onclick="saveModal('+t.id+',\''+s.id+'\')">Save changes</button></div>'+
+    '</div></div>';
+  document.getElementById('modalRoot').innerHTML=html;icons();mValidate();
+  setTimeout(function(){var el=document.getElementById('mVal');if(el){el.focus();el.select();}},20);
+}
+function mValidate(){var err=validate(document.getElementById('mType').value,document.getElementById('mVal').value);var hint=document.getElementById('mHint'),save=document.getElementById('mSave');if(err){hint.className='mhint err';hint.textContent=err;save.disabled=true;}else{hint.className='mhint ok';hint.textContent='Looks good';save.disabled=false;}}
+function saveModal(tid,sid){var type=document.getElementById('mType').value,val=document.getElementById('mVal').value;if(validate(type,val))return;var r=findSel(tid,sid),s=r.s;s.type=type;s.val=val;s.err=null;s.fix=null;s.ver='ok';s.prov='mod';if(!s.h)s.ver='bad';closeModal();toast('Value updated · marked Agent-modified');renderAgentTargets();}
+function closeModal(){document.getElementById('modalRoot').innerHTML='';}
+
+/* summary */
 function renderSummary(){
   var h='';
   targets.forEach(function(t){
@@ -481,7 +682,7 @@ function renderSummary(){
   document.getElementById('summaryTargets').innerHTML=h;
 }
 
-/* ---------- analyst ---------- */
+/* analyst */
 var analystData=[
   {id:1,role:"Primary Subject",selectors:[
     {id:"email",type:"Email Address",val:"lingxingyu999@gmail.com",prov:"ext",ver:"ok",h:"a-email"},
@@ -500,14 +701,13 @@ var analystData=[
 ];
 var verdicts={};
 function renderAnalyst(){
-  var h='';
-  var mod=0,add=0,ss=0;
+  var h='';var mod=0,add=0,ss=0;
   analystData.forEach(function(t){t.selectors.forEach(function(s){ss++;if(s.prov==='mod')mod++;if(s.prov==='add')add++;});});
   h+='<div class="metrics"><div class="metric"><b>'+ss+'</b><span>selectors</span></div>'+
      '<div class="metric"><b style="color:#37508a">'+mod+'</b><span>agent-modified</span></div>'+
      '<div class="metric"><b>'+add+'</b><span>agent-added</span></div></div>';
   analystData.forEach(function(t){
-    h+='<div class="tgroup"><div class="tgh"><span class="av">👤</span><b>Target '+t.id+'</b> <span class="small muted">'+t.role+'</span></div>';
+    h+='<div class="tgroup"><div class="tgh"><span class="av"><i data-lucide="user"></i></span><b>Target '+t.id+'</b> <span class="small muted">'+t.role+'</span></div>';
     t.selectors.forEach(function(s){
       var v=verdicts[t.id+'-'+s.id];
       var chips=chip(provLabel[s.prov])+(s.ver==='bad'?' <span class="chip c-bad">Not in document</span>':'');
@@ -519,7 +719,7 @@ function renderAnalyst(){
     });
     h+='</div>';
   });
-  document.getElementById('tpaneAnalyst').innerHTML=h;
+  document.getElementById('tpaneAnalyst').innerHTML=h;icons();
 }
 function verdict(tid,sid,v){verdicts[tid+'-'+sid]=v;renderAnalyst();toast(v==='acc'?'Selector accepted':'Selector flagged for follow-up');}
 function bulkAccept(){analystData.forEach(function(t){t.selectors.forEach(function(s){if(s.ver==='ok')verdicts[t.id+'-'+s.id]='acc';});});renderAnalyst();toast('All matched selectors accepted');}
@@ -528,11 +728,11 @@ function pickA(sid,h){
   document.querySelectorAll('#tpaneAnalyst .sel').forEach(function(el){el.classList.toggle('active',el.dataset.sid===sid);});
   document.querySelectorAll('#docPageA mark').forEach(function(m){m.classList.remove('sel');});
   var foot=document.getElementById('docFootA');
-  if(h){var mk=document.querySelector('#docPageA mark[data-h="'+h+'"]');if(mk){mk.classList.add('sel');mk.scrollIntoView({block:'center',behavior:'smooth'});foot.innerHTML='<span>◎ Located in attachment — highlighted above.</span>';}}
-  else{foot.innerHTML='<span style="color:var(--bad-fg)">⚠ Not present in the attachment — submitter entered this manually.</span>';}
+  if(h){var mk=document.querySelector('#docPageA mark[data-h="'+h+'"]');if(mk){mk.classList.add('sel');mk.scrollIntoView({block:'center',behavior:'smooth'});foot.innerHTML='<i data-lucide="scan-search"></i><span>Located in attachment — highlighted above.</span>';}}
+  else{foot.innerHTML='<i data-lucide="circle-alert"></i><span style="color:var(--bad-fg)">Not present in the attachment — submitter entered this manually.</span>';}
+  icons();
 }
 
-/* ---------- persona ---------- */
 function setPersona(p){
   document.getElementById('p-agent').classList.toggle('on',p==='agent');
   document.getElementById('p-analyst').classList.toggle('on',p==='analyst');
@@ -541,15 +741,11 @@ function setPersona(p){
   document.getElementById('nav-new').classList.toggle('active',p==='agent');
   document.getElementById('nav-req').classList.toggle('active',p==='analyst');
   if(p==='analyst') renderAnalyst();
-  window.scrollTo({top:0,behavior:'smooth'});
+  icons();window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* ---------- toast ---------- */
-var tmo;
-function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(tmo);tmo=setTimeout(function(){el.classList.remove('show');},1800);}
-
-/* init */
-buildStepper();go(1);addFile();
+var tmo;function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(tmo);tmo=setTimeout(function(){el.classList.remove('show');},1800);}
+buildStepper();go(1);addFile();icons();
 </script>
 </body>
 </html>
